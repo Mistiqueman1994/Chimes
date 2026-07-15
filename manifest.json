@@ -1,0 +1,25 @@
+{
+  "name": "Westminster — Hourly Chime",
+  "short_name": "Chimes",
+  "description": "A Westminster Quarters hourly chime clock, styled as a brass instrument-plate cabinet.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1c1815",
+  "theme_color": "#1c1815",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

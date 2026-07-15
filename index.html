@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Snake</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#0f380f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Snake">
+<style>
+  * { box-sizing: border-box; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+  html, body {
+    height: 100%;
+    overscroll-behavior: none;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #1a1a1a;
+    font-family: 'Courier New', monospace;
+    touch-action: manipulation;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .phone {
+    background: #2b2b2b;
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  }
+  .screen {
+    background: #9bbc0f;
+    border: 6px solid #0f380f;
+    border-radius: 6px;
+    padding: 8px;
+  }
+  .hud {
+    display: flex;
+    justify-content: space-between;
+    color: #0f380f;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 0 4px 6px 4px;
+    letter-spacing: 1px;
+  }
+  canvas {
+    display: block;
+    background: #9bbc0f;
+    image-rendering: pixelated;
+  }
+  .msg {
+    text-align: center;
+    color: #0f380f;
+    font-weight: bold;
+    font-size: 12px;
+    padding-top: 6px;
+    min-height: 16px;
+    letter-spacing: 1px;
+  }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(3, 50px);
+    gap: 6px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+  .controls button {
+    background: #444;
+    border: none;
+    border-radius: 8px;
+    color: #9bbc0f;
+    font-size: 18px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .controls button:active { background: #555; }
+  #up { grid-column: 2; grid-row: 1; }
+  #left { grid-column: 1; grid-row: 2; }
+  #startBtn { grid-column: 2; grid-row: 2; font-size: 11px; }
+  #right { grid-column: 3; grid-row: 2; }
+  #down { grid-column: 2; grid-row: 3; }
+  .hint {
+    text-align: center;
+    color: #666;
+    font-size: 11px;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="screen">
+      <div class="hud">
+        <span>SCORE: <span id="score">0</span></span>
+        <span>BEST: <span id="best">0</span></span>
+      </div>
+      <canvas id="game" width="220" height="220"></canvas>
+      <div class="msg" id="msg">Press Start / any arrow key</div>
+    </div>
+    <div class="controls">
+      <button id="up">▲</button>
+      <button id="left">◀</button>
+      <button id="startBtn">START</button>
+      <button id="right">▶</button>
+      <button id="down">▼</button>
+    </div>
+    <div class="hint">Arrow keys / WASD also work</div>
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const grid = 11;               // cell size in px
+const cols = canvas.width / grid;
+const rows = canvas.height / grid;
+
+let snake, dir, nextDir, food, score, best, running, loopId, speed;
+
+const scoreEl = document.getElementById('score');
+const bestEl = document.getElementById('best');
+const msgEl = document.getElementById('msg');
+
+best = 0;
+bestEl.textContent = best;
+
+function reset() {
+  snake = [{x: 5, y: 5}, {x: 4, y: 5}, {x: 3, y: 5}];
+  dir = {x: 1, y: 0};
+  nextDir = {x: 1, y: 0};
+  score = 0;
+  speed = 140;
+  scoreEl.textContent = score;
+  placeFood();
+  draw();
+}
+
+function placeFood() {
+  let valid = false;
+  while (!valid) {
+    food = { x: Math.floor(Math.random()*cols), y: Math.floor(Math.random()*rows) };
+    valid = !snake.some(s => s.x === food.x && s.y === food.y);
+  }
+}
+
+function draw() {
+  ctx.fillStyle = '#9bbc0f';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = '#0f380f';
+  snake.forEach(s => ctx.fillRect(s.x*grid+1, s.y*grid+1, grid-2, grid-2));
+
+  ctx.fillRect(food.x*grid+2, food.y*grid+2, grid-4, grid-4);
+}
+
+function step() {
+  dir = nextDir;
+  const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+  // wall collision
+  if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
+    return gameOver();
+  }
+  // self collision
+  if (snake.some(s => s.x === head.x && s.y === head.y)) {
+    return gameOver();
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    scoreEl.textContent = score;
+    if (speed > 60) speed -= 3;
+    placeFood();
+    clearInterval(loopId);
+    loopId = setInterval(step, speed);
+  } else {
+    snake.pop();
+  }
+
+  draw();
+}
+
+function gameOver() {
+  running = false;
+  clearInterval(loopId);
+  if (score > best) {
+    best = score;
+    bestEl.textContent = best;
+  }
+  msgEl.textContent = 'GAME OVER — Press Start';
+}
+
+function start() {
+  if (running) return;
+  reset();
+  running = true;
+  msgEl.textContent = '';
+  clearInterval(loopId);
+  loopId = setInterval(step, speed);
+}
+
+function setDir(x, y) {
+  if (dir.x === -x && dir.y === -y) return; // no reverse
+  nextDir = {x, y};
+  if (!running) start();
+}
+
+document.addEventListener('keydown', e => {
+  switch (e.key) {
+    case 'ArrowUp': case 'w': case 'W': setDir(0, -1); break;
+    case 'ArrowDown': case 's': case 'S': setDir(0, 1); break;
+    case 'ArrowLeft': case 'a': case 'A': setDir(-1, 0); break;
+    case 'ArrowRight': case 'd': case 'D': setDir(1, 0); break;
+  }
+});
+
+document.getElementById('up').addEventListener('click', () => setDir(0, -1));
+document.getElementById('down').addEventListener('click', () => setDir(0, 1));
+document.getElementById('left').addEventListener('click', () => setDir(-1, 0));
+document.getElementById('right').addEventListener('click', () => setDir(1, 0));
+document.getElementById('startBtn').addEventListener('click', start);
+
+// swipe controls
+let touchStartX = 0, touchStartY = 0;
+const screenEl = document.querySelector('.screen');
+screenEl.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+}, { passive: true });
+
+screenEl.addEventListener('touchend', e => {
+  const t = e.changedTouches[0];
+  const dx = t.clientX - touchStartX;
+  const dy = t.clientY - touchStartY;
+  if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    setDir(dx > 0 ? 1 : -1, 0);
+  } else {
+    setDir(0, dy > 0 ? 1 : -1);
+  }
+}, { passive: true });
+
+// prevent iOS Safari rubber-band scrolling / pull-to-refresh
+document.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+reset();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

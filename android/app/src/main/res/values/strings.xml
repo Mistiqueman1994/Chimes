@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Skye</string>
+    <string name="title_activity_main">Skye</string>
+    <string name="package_name">com.skye.clockapp</string>
+    <string name="custom_url_scheme">com.skye.clockapp</string>
+</resources>

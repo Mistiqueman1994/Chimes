@@ -1,12 +1,15 @@
 {
   "name": "skye",
   "version": "1.0.0",
-  "description": "A day/night sky clock app that speaks the time, with a stopwatch, timer, and calculator — wrapped as a native app with Capacitor.",
+  "description": "A day/night sky clock app that speaks the time, with a stopwatch, timer, and calculator — wrapped as a native app with Capacitor (Android/iOS) and Electron (Windows desktop).",
   "private": true,
+  "main": "electron/main.js",
   "scripts": {
     "sync": "cap sync",
     "open:android": "cap open android",
-    "open:ios": "cap open ios"
+    "open:ios": "cap open ios",
+    "electron:start": "electron .",
+    "dist:win": "electron-builder --win"
   },
   "license": "ISC",
   "dependencies": {
@@ -15,6 +18,30 @@
     "@capacitor/ios": "^8.4.2"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.4.2"
+    "@capacitor/cli": "^8.4.2",
+    "electron": "^43.1.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.skye.desktop",
+    "productName": "Skye",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "www/**/*"
+    ],
+    "win": {
+      "target": [
+        { "target": "nsis", "arch": ["x64"] },
+        { "target": "portable", "arch": ["x64"] }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

@@ -1,0 +1,42 @@
+name: Build Skye for Windows
+
+on:
+  push:
+    branches:
+      - main
+      - claude/skye-clock-app-pnbe37
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Smoke test — launch the app and confirm it doesn't crash
+        shell: pwsh
+        run: |
+          $proc = Start-Process -FilePath "node_modules\.bin\electron.cmd" -ArgumentList "." -PassThru
+          Start-Sleep -Seconds 8
+          if ($proc.HasExited) {
+            Write-Error "Electron exited early with code $($proc.ExitCode)"
+            exit 1
+          }
+          Write-Host "Electron is running (PID $($proc.Id)) — app launched successfully."
+          Stop-Process -Id $proc.Id -Force
+
+      - name: Build Windows installer + portable exe
+        run: npx electron-builder --win --publish=never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skye-windows
+          path: |
+            dist-electron/*.exe
+          if-no-files-found: error

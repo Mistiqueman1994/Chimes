@@ -25,6 +25,23 @@ built and installed as a real app rather than just a browser tab / home-screen i
 - **Installable PWA** — add to your home screen for a full-screen, offline-
   capable app (`manifest.json` + `sw.js`).
 
+## On iPhone, without a Mac
+
+iOS apps normally need Xcode (Mac-only) to compile, but you don't need a
+compiled app to get Skye on your Home Screen. Once the site is hosted (see
+[Deploying](#deploying-as-a-website--pwa) below):
+
+1. Open the hosted URL in **Safari** on the iPhone (must be Safari, not
+   another browser — only Safari can install home-screen apps on iOS).
+2. Tap the **Share** button, then **Add to Home Screen**.
+3. Launch Skye from its new Home Screen icon — it opens full-screen, with no
+   Safari address bar, and keeps working offline.
+
+Everything works this way except "Hey Skye" voice activation — iOS restricts
+the `SpeechRecognition` API for home-screen web apps, so that toggle may not
+respond. Spoken time announcements, the stopwatch/timer/calculator narration,
+and the wake lock all work normally.
+
 ## Running in a browser
 
 Skye is a static site — no build step. Serve `www/` over HTTP(S) (voice
@@ -39,9 +56,17 @@ Then open `http://localhost:8000`.
 
 ## Deploying as a website / PWA
 
-Push the contents of `www/` to any static host (GitHub Pages, Netlify, Vercel,
-etc.) — `index.html`, `manifest.json`, `sw.js`, and the icon files are all
-that's needed.
+A GitHub Actions workflow (`.github/workflows/deploy-pages.yml`) is already
+set up to publish `www/` to GitHub Pages on every push to `main`. To turn it
+on: go to the repo's **Settings → Pages**, and under "Build and deployment"
+set **Source** to **GitHub Actions** (one-time, manual — GitHub doesn't allow
+enabling this via API). After that, each push re-deploys automatically, and
+the live URL shows up on the same Settings → Pages screen (typically
+`https://<username>.github.io/<repo>/`).
+
+You can just as easily push the contents of `www/` to any other static host
+(Netlify, Vercel, etc.) instead — `index.html`, `manifest.json`, `sw.js`, and
+the icon files are all that's needed.
 
 ## Building the native app
 

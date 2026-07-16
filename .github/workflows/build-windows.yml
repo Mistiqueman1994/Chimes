@@ -1,0 +1,46 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - claude/bell-scheduler-app-p8impp
+    paths:
+      - 'main.js'
+      - 'index.html'
+      - 'manifest.json'
+      - 'package.json'
+      - 'build/**'
+      - '.github/workflows/build-windows.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows installer
+        run: npm run dist:win
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bell-scheduler-windows-installer
+          path: release/*.exe
+
+      - name: Publish installer to a GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: desktop-build-${{ github.run_number }}
+          name: Bell Scheduler (Windows build ${{ github.run_number }})
+          files: release/*.exe

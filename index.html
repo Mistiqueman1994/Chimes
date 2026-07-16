@@ -3,8 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
 <title>Skye</title>
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Skye&quot;,&quot;display&quot;:&quot;fullscreen&quot;,&quot;background_color&quot;:&quot;%23060B1F&quot;,&quot;theme_color&quot;:&quot;%23060B1F&quot;}">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1E6FA8">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<!-- iOS ignores manifest "display: fullscreen" — these three tags are what actually
+     make "Add to Home Screen" launch full-screen without Safari chrome -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Skye">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:ital,wght@0,400;0,600;1,500&display=swap" rel="stylesheet">
 <style>
@@ -1562,6 +1572,14 @@
   applyFaceStyle();
   tick();
   setInterval(tick, 1000);
+
+  // Register service worker — required for PWA installability, and lets the app
+  // keep working offline once it's loaded. Only works over https:// (or localhost).
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    });
+  }
 })();
 </script>
 </body>

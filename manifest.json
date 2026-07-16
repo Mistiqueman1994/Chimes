@@ -1,13 +1,13 @@
 {
-  "name": "Westminster — Hourly Chime",
-  "short_name": "Chimes",
-  "description": "A Westminster Quarters hourly chime clock, styled as a brass instrument-plate cabinet.",
+  "name": "Skye",
+  "short_name": "Skye",
+  "description": "A day/night sky clock that speaks the time, with a stopwatch, timer, and calculator.",
   "start_url": "./index.html",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "portrait",
-  "background_color": "#1c1815",
-  "theme_color": "#1c1815",
+  "background_color": "#060B1F",
+  "theme_color": "#1E6FA8",
   "icons": [
     {
       "src": "icon-192.png",

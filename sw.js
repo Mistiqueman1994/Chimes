@@ -1,7 +1,8 @@
-const CACHE_NAME = 'chimes-v1';
+const CACHE_NAME = 'chimes-v2';
 const ASSETS = [
   './',
   './index.html',
+  './snake.html',
   './manifest.json',
   './icon-192.png',
   './icon-180.png',

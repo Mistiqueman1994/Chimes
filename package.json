@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A day/night sky clock app that speaks the time, with a stopwatch, timer, and calculator — wrapped as a native app with Capacitor (Android/iOS) and Electron (Windows desktop).",
   "private": true,
+  "author": "Skye",
   "main": "electron/main.js",
   "scripts": {
     "sync": "cap sync",

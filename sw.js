@@ -1,11 +1,14 @@
-const CACHE_NAME = 'chimes-v2';
+const CACHE_NAME = 'chimes-v3';
 const ASSETS = [
   './',
   './index.html',
   './snake.html',
   './manifest.json',
+  './snake-manifest.json',
   './icon-192.png',
   './icon-180.png',
+  './icon-snake-192.png',
+  './icon-snake-512.png',
 ];
 
 self.addEventListener('install', (event) => {

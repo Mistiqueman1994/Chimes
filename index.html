@@ -452,18 +452,18 @@
       <div class="time" id="clock">--:--:--</div>
       <svg id="analogueClock" viewBox="0 0 200 200" style="display:none; width:192px; height:192px;">
         <circle cx="100" cy="100" r="96" fill="none" stroke="var(--dial-ring)" stroke-width="1.5"/>
-        <text x="100" y="30" text-anchor="middle" font-family="var(--font-display)" font-size="17" fill="var(--brass-bright)">XII</text>
-        <text x="141" y="40" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">I</text>
-        <text x="169" y="66" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">II</text>
-        <text x="180" y="105" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">III</text>
-        <text x="169" y="144" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">IV</text>
-        <text x="141" y="170" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">V</text>
-        <text x="100" y="182" text-anchor="middle" font-family="var(--font-display)" font-size="17" fill="var(--brass-bright)">VI</text>
-        <text x="61" y="170" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">VII</text>
-        <text x="32" y="144" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">VIII</text>
-        <text x="22" y="105" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">IX</text>
-        <text x="32" y="66" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">X</text>
-        <text x="61" y="40" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">XI</text>
+        <text id="num12" x="100" y="30" text-anchor="middle" font-family="var(--font-display)" font-size="17" fill="var(--brass-bright)">XII</text>
+        <text id="num1" x="141" y="40" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">I</text>
+        <text id="num2" x="169" y="66" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">II</text>
+        <text id="num3" x="180" y="105" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">III</text>
+        <text id="num4" x="169" y="144" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">IV</text>
+        <text id="num5" x="141" y="170" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">V</text>
+        <text id="num6" x="100" y="182" text-anchor="middle" font-family="var(--font-display)" font-size="17" fill="var(--brass-bright)">VI</text>
+        <text id="num7" x="61" y="170" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">VII</text>
+        <text id="num8" x="32" y="144" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">VIII</text>
+        <text id="num9" x="22" y="105" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">IX</text>
+        <text id="num10" x="32" y="66" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">X</text>
+        <text id="num11" x="61" y="40" text-anchor="middle" font-family="var(--font-display)" font-size="15" fill="var(--dial-numeral)">XI</text>
         <line id="hourHand" x1="100" y1="100" x2="100" y2="60" stroke="var(--brass)" stroke-width="6" stroke-linecap="round"/>
         <line id="minuteHand" x1="100" y1="100" x2="100" y2="34" stroke="var(--brass-bright)" stroke-width="4" stroke-linecap="round"/>
         <line id="secondHand" x1="100" y1="100" x2="100" y2="26" stroke="var(--red)" stroke-width="1.5" stroke-linecap="round"/>
@@ -489,6 +489,13 @@
         <button data-val="analogue">Analogue</button>
       </div>
     </div>
+    <div class="row" id="numeralRow" style="display:none;">
+      <div class="row-label">Numerals<small>Analogue dial style</small></div>
+      <div class="segmented" id="segNumerals">
+        <button data-val="roman" class="active">Roman</button>
+        <button data-val="digits">Digits</button>
+      </div>
+    </div>
     <div class="row">
       <div class="row-label">Time format<small>Digital / date readout</small></div>
       <div class="segmented" id="segFormat">
@@ -499,6 +506,14 @@
     <div class="row">
       <div class="row-label">Arm hourly chime<small>Master enable</small></div>
       <div class="switch" id="swMaster"><div class="knob"></div></div>
+    </div>
+    <div class="row">
+      <div class="row-label">Westminster melody<small>Tune before the strikes — turn off for strikes-only</small></div>
+      <div class="switch" id="swMelody"><div class="knob"></div></div>
+    </div>
+    <div class="row">
+      <div class="row-label">Half-hour chime<small>3-note ascending chime at :30</small></div>
+      <div class="switch" id="swHalf"><div class="knob"></div></div>
     </div>
 
     <div class="row">
@@ -527,6 +542,7 @@
 
     <div class="buttons">
       <button id="testHour" class="full">Simulate Full Hour Chime</button>
+      <button id="testHalf" class="full">Simulate Half-Hour Chime</button>
       <button id="testStrike" class="full">Test Single Strike (volume check)</button>
     </div>
   </div>
@@ -769,13 +785,30 @@ function currentPitchMul(){ return 1.0; } // locked — tuning fixed to the true
 
 function chimeFullHour(hour24){
   const pitchMul = currentPitchMul();
-  // Permanent Westminster pattern: the full quarter-phrase sequence always
-  // leads into the hour strikes — this is no longer togglable.
-  const end = playChanges(quarterChangeIndices[4], pitchMul); // Changes II, III, IV, V
-  const strikeDelay = (end - ensureCtx().currentTime) + 0.5;
+  const doMelody = document.getElementById('swMelody').classList.contains('on');
+  let strikeDelay = 0.05;
+  if(doMelody){
+    const end = playChanges(quarterChangeIndices[4], pitchMul); // Changes II, III, IV, V
+    strikeDelay = (end - ensureCtx().currentTime) + 0.5;
+  }
   let hour12 = hour24 % 12; if(hour12 === 0) hour12 = 12;
   playStrikes(hour12, pitchMul, strikeDelay);
   logStatus('Full hour struck (' + hour24 + ':00) at ' + new Date().toLocaleTimeString());
+}
+
+function halfHourDing(){
+  // A distinct 3-note ascending chime (root, third, fifth of the bell set) —
+  // easy to tell apart from both the full melody and the hour strikes.
+  const pitchMul = currentPitchMul();
+  const ctx = ensureCtx();
+  const notes = ['B3', 'E4', 'G#4'];
+  const gap = 0.55;
+  let t = ctx.currentTime + 0.05;
+  notes.forEach(n => {
+    ringBell(noteFreq(n, pitchMul), t, 2.2, 1.1, false);
+    t += gap;
+  });
+  logStatus('Half-hour ascending chime at ' + new Date().toLocaleTimeString());
 }
 
 // ---------- Scheduling (poll-based, throttle-tolerant) ----------
@@ -794,8 +827,16 @@ function boundaryKey(date){
 
 function msUntilNextBoundary(){
   const now = new Date();
-  let target = new Date(now);
-  target.setHours(now.getHours() + 1, 0, 0, 0);
+  const halfEnabled = document.getElementById('swHalf').classList.contains('on');
+  let nextHour = new Date(now);
+  nextHour.setHours(now.getHours() + 1, 0, 0, 0);
+  let target = nextHour;
+  if(halfEnabled){
+    let nextHalf = new Date(now);
+    if(now.getMinutes() < 30){ nextHalf.setMinutes(30, 0, 0); }
+    else { nextHalf.setHours(now.getHours() + 1, 30, 0, 0); }
+    if(nextHalf.getTime() < target.getTime()) target = nextHalf;
+  }
   return target.getTime() - now.getTime();
 }
 
@@ -827,14 +868,17 @@ function pollTick(){
     const now = new Date();
     const m = now.getMinutes();
     const h = now.getHours();
-    if(m === 0){
+    const halfEnabled = document.getElementById('swHalf').classList.contains('on');
+    if(m === 0 || (m === 30 && halfEnabled)){
       const key = boundaryKey(now);
       if(key !== lastChimedKey){
         lastChimedKey = key;
         if(isSilentNow()){
           logStatus('Silent hours — chime skipped at ' + now.toLocaleTimeString());
-        } else {
+        } else if(m === 0){
           chimeFullHour(h);
+        } else {
+          halfHourDing();
         }
       }
     }
@@ -913,6 +957,7 @@ function setClockFace(mode){
   clockFace = mode;
   document.getElementById('clock').style.display = (mode === 'digital') ? 'block' : 'none';
   document.getElementById('analogueClock').style.display = (mode === 'analogue') ? 'block' : 'none';
+  document.getElementById('numeralRow').style.display = (mode === 'analogue') ? 'flex' : 'none';
   document.querySelectorAll('#segFace button').forEach(b => b.classList.toggle('active', b.dataset.val === mode));
 }
 function setTimeFormat(fmt){
@@ -920,8 +965,16 @@ function setTimeFormat(fmt){
   document.querySelectorAll('#segFormat button').forEach(b => b.classList.toggle('active', b.dataset.val === fmt));
   tickClock();
 }
+const romanNumerals = {1:'I',2:'II',3:'III',4:'IV',5:'V',6:'VI',7:'VII',8:'VIII',9:'IX',10:'X',11:'XI',12:'XII'};
+function setNumeralStyle(style){
+  for(let n = 1; n <= 12; n++){
+    document.getElementById('num' + n).textContent = (style === 'roman') ? romanNumerals[n] : String(n);
+  }
+  document.querySelectorAll('#segNumerals button').forEach(b => b.classList.toggle('active', b.dataset.val === style));
+}
 document.querySelectorAll('#segFace button').forEach(b => b.addEventListener('click', () => setClockFace(b.dataset.val)));
 document.querySelectorAll('#segFormat button').forEach(b => b.addEventListener('click', () => setTimeFormat(b.dataset.val)));
+document.querySelectorAll('#segNumerals button').forEach(b => b.addEventListener('click', () => setNumeralStyle(b.dataset.val)));
 
 // ---------- Skin (Classic brass plate / Modern flat) ----------
 function setSkin(mode){
@@ -947,6 +1000,8 @@ function bindSwitch(id, initialOn, onChange){
 }
 
 bindSwitch('swMaster', false, armMaster);
+bindSwitch('swMelody', true, () => {});
+bindSwitch('swHalf', false, () => {});
 bindSwitch('swSilent', false, (on) => {
   document.getElementById('silentFromRow').style.display = on ? 'flex' : 'none';
   document.getElementById('silentToRow').style.display = on ? 'flex' : 'none';
@@ -962,6 +1017,7 @@ document.getElementById('volSlider').addEventListener('input', e => {
 });
 
 document.getElementById('testStrike').addEventListener('click', () => { ensureCtx(); playStrikes(1, currentPitchMul(), 0.05); logStatus('Test strike.'); });
+document.getElementById('testHalf').addEventListener('click', () => { ensureCtx(); halfHourDing(); });
 document.getElementById('testHour').addEventListener('click', () => {
   ensureCtx();
   const now = new Date();

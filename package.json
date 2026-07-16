@@ -3,6 +3,7 @@
   "productName": "Bell Scheduler",
   "version": "1.0.0",
   "description": "Schedule custom bell chimes throughout the day and keep to a routine.",
+  "author": "Bell Scheduler",
   "main": "main.js",
   "private": true,
   "scripts": {
@@ -18,6 +19,7 @@
   "build": {
     "appId": "com.bellscheduler.app",
     "productName": "Bell Scheduler",
+    "publish": null,
     "directories": {
       "output": "release"
     },

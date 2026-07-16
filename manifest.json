@@ -1,13 +1,13 @@
 {
-  "name": "Westminster — Hourly Chime",
-  "short_name": "Chimes",
-  "description": "A Westminster Quarters hourly chime clock, styled as a brass instrument-plate cabinet.",
+  "name": "Bell Scheduler",
+  "short_name": "Bell Scheduler",
+  "description": "Schedule custom bell chimes for any time of day and keep to a routine.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#1c1815",
-  "theme_color": "#1c1815",
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
   "icons": [
     {
       "src": "icon-192.png",

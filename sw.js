@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chimes-v1';
+const CACHE_NAME = 'bell-scheduler-v1';
 const ASSETS = [
   './',
   './index.html',

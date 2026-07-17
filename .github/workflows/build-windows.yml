@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     defaults:
       run:
         working-directory: desktop-app
@@ -22,9 +22,7 @@ jobs:
       - run: npm install
       - run: npm run package:win
       - name: Zip portable build
-        run: |
-          cd dist
-          zip -r ../Snake-win32-x64.zip "Snake-win32-x64"
+        run: Compress-Archive -Path "dist/Snake-win32-x64" -DestinationPath "Snake-win32-x64.zip"
       - uses: actions/upload-artifact@v4
         with:
           name: Snake-windows

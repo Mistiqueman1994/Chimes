@@ -26,6 +26,16 @@ copyrighted work, the fact that a tool was "algorithmic" does not make
 you immune from the consequences of that. Those consequences are yours
 to deal with, not this app's.
 
+## Repeated attempts get the app suspended for a day
+
+The prompt-box filter above tracks attempts, not just single prompts. If
+you trigger it 3 times, this app locks itself for 24 hours - during that
+time it won't open its generator screen at all, on this install, on this
+PC, until the 24 hours pass. This isn't a punishment system reaching
+beyond the app; it's a deliberate design choice to make clear that this
+tool is meant for making original music, not for repeatedly trying to
+work around that.
+
 ## Lyrics and vocals are entirely on you
 
 This app never writes, suggests, or generates lyrics or vocals - it only

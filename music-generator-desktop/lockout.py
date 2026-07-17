@@ -3,18 +3,36 @@ lockout.py
 -----------
 Tracks attempts to reference real copyrighted artists/songs in the prompt
 box (as flagged by prompt_parser) and locks the app for 24 hours after
-3 such attempts. State is a small JSON file in the user's home directory,
-so the lockout survives app restarts.
+3 such attempts. State is a small JSON file kept in this app's own local
+data folder, so the lockout survives app restarts but stays contained to
+this one app on this one PC - it's not written anywhere shared, and (on
+Windows) it lives under %LOCALAPPDATA%, which never roams to other
+machines, so it can never follow the user or affect anything PC-wide.
 """
 
 import json
 import os
+import sys
 from datetime import datetime, timedelta, timezone
 
 MAX_VIOLATIONS = 3
 LOCK_DURATION_HOURS = 24
 
-_STATE_DIR = os.path.join(os.path.expanduser("~"), ".original_music_generator")
+APP_FOLDER_NAME = "Original Music Generator"
+
+
+def _app_data_dir():
+    """This app's own per-user, per-machine data folder (OS-appropriate)."""
+    if sys.platform.startswith("win"):
+        base = os.environ.get("LOCALAPPDATA") or os.path.join(os.path.expanduser("~"), "AppData", "Local")
+        return os.path.join(base, APP_FOLDER_NAME)
+    if sys.platform == "darwin":
+        return os.path.join(os.path.expanduser("~"), "Library", "Application Support", APP_FOLDER_NAME)
+    xdg_data = os.environ.get("XDG_DATA_HOME") or os.path.join(os.path.expanduser("~"), ".local", "share")
+    return os.path.join(xdg_data, APP_FOLDER_NAME)
+
+
+_STATE_DIR = _app_data_dir()
 _STATE_PATH = os.path.join(_STATE_DIR, "lockout_state.json")
 
 

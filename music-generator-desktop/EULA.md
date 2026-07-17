@@ -26,16 +26,23 @@ copyrighted work, the fact that a tool was "algorithmic" does not make
 you immune from the consequences of that. Those consequences are yours
 to deal with, not this app's.
 
-## Repeated attempts turn off the description box for your session
+## Repeated attempts turn off more features, for longer
 
-The prompt-box filter above tracks attempts, not just single prompts. If
-you trigger it 3 times in one session, the free-text description box
-turns itself off until you restart the app - nothing else is affected,
-and nothing is saved anywhere: genre, key, tempo, and instrument
-controls keep working normally, and you can still generate and export
-music the whole time. This is a deliberate design choice to make clear
-that this tool is meant for making original music, not for repeatedly
-trying to work around that - not a persistent penalty.
+The prompt-box filter above tracks attempts over time, not just single
+prompts, and escalates if you keep triggering it:
+
+- **3 attempts** - the description box is turned off for 24 hours.
+- **2 more (5 total)** - in-app playback is also turned off for 24 hours.
+- **2 more (7 total)** - exporting WAV files is also turned off for 24 hours.
+- **2 more (9 total)** - generating music is also turned off for 24 hours.
+
+Each new threshold re-locks everything up to that point for a fresh 24
+hours. If a restriction window passes without you triggering the filter
+again, it lifts completely. This never stops the app itself from
+opening - even at the highest level, the window still starts up and
+shows its controls, they're just turned off until the time passes. This
+is a deliberate design choice to make clear that this tool is meant for
+making original music, not for repeatedly trying to work around that.
 
 ## Lyrics and vocals are entirely on you
 

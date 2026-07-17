@@ -19,8 +19,7 @@ import sys
 
 import music_engine as me
 import prompt_parser as pp
-
-PROMPT_MAX_VIOLATIONS = 3
+import restrictions
 
 
 def _resource_path(*parts):
@@ -47,7 +46,7 @@ class MusicGenApp:
 
         self.melody = None
         self.buffer = None
-        self._prompt_violations = 0
+        self._disabled_features = set()
 
         self._show_eula_gate()
 
@@ -148,6 +147,15 @@ class MusicGenApp:
         self._build_ui()
         self._apply_genre_defaults()
 
+        disabled, locked_until = restrictions.active_restrictions()
+        if disabled:
+            self._apply_feature_restrictions(disabled)
+            feature_list = ", ".join(restrictions.FEATURE_LABELS[f] for f in disabled)
+            self.status.set(
+                f"Restricted for {restrictions.remaining_time_str(locked_until)} "
+                f"due to repeated attempts to reference real artists/songs: {feature_list}."
+            )
+
     def _on_eula_decline(self):
         self.root.destroy()
 
@@ -236,7 +244,8 @@ class MusicGenApp:
 
         # --- Actions ---
         btn_row = ttk.Frame(outer); btn_row.pack(fill="x", **pad)
-        ttk.Button(btn_row, text="Generate", command=self.on_generate).pack(side="left", expand=True, fill="x", padx=4)
+        self.generate_btn = ttk.Button(btn_row, text="Generate", command=self.on_generate)
+        self.generate_btn.pack(side="left", expand=True, fill="x", padx=4)
         self.play_btn = ttk.Button(btn_row, text="Play", command=self.on_play, state="disabled")
         self.play_btn.pack(side="left", expand=True, fill="x", padx=4)
         self.stop_btn = ttk.Button(btn_row, text="Stop", command=self.on_stop, state="disabled")
@@ -284,45 +293,62 @@ class MusicGenApp:
         except ValueError:
             return abs(hash(s)) % (10 ** 8)
 
-    def _disable_prompt_box(self):
-        self.prompt_var.set("")
-        self.prompt_entry.config(state="disabled")
-        self.prompt_apply_btn.config(state="disabled")
-        self.prompt_hint_label.config(
-            text="Description box turned off for this session after repeated attempts "
-                 "to reference a real artist/band/song. Use the controls below instead."
-        )
+    def _feature_allowed(self, name):
+        return name not in self._disabled_features
+
+    def _apply_feature_restrictions(self, disabled_features):
+        self._disabled_features = set(disabled_features)
+
+        if "prompt_box" in self._disabled_features:
+            self.prompt_var.set("")
+            self.prompt_entry.config(state="disabled")
+            self.prompt_apply_btn.config(state="disabled")
+            self.prompt_hint_label.config(
+                text="Description box turned off after repeated attempts to reference "
+                     "a real artist/band/song. Use the controls below instead."
+            )
+
+        if "play" in self._disabled_features:
+            self.play_btn.config(state="disabled")
+        if "export" in self._disabled_features:
+            self.export_wav_btn.config(state="disabled")
+        if "generate" in self._disabled_features:
+            self.generate_btn.config(state="disabled")
 
     def on_apply_prompt(self):
         text = self.prompt_var.get()
         result = pp.parse_prompt(text)
 
         if result["blocked"]:
-            self._prompt_violations += 1
+            disabled, newly_escalated, locked_until, next_in = restrictions.register_violation()
 
-            if self._prompt_violations >= PROMPT_MAX_VIOLATIONS:
-                self._disable_prompt_box()
-                messagebox.showerror(
-                    "Description box turned off",
-                    "That's 3 attempts to reference a real copyrighted artist/song "
-                    "in the prompt box. The description box is now turned off for "
-                    "the rest of this session.\n\n"
-                    "Everything else still works normally - use the genre, key, "
-                    "tempo, and instrument controls below to generate and export "
-                    "music."
-                )
-                self.status.set("Description box turned off for this session - use the controls below to generate music.")
+            if disabled:
+                self._apply_feature_restrictions(disabled)
+                feature_list = ", ".join(restrictions.FEATURE_LABELS[f] for f in disabled)
+                time_left = restrictions.remaining_time_str(locked_until)
+                if newly_escalated:
+                    messagebox.showerror(
+                        "More features restricted",
+                        "That's another round of attempts to reference a real "
+                        f"copyrighted artist/song. Now turned off for {time_left}:\n\n"
+                        f"{feature_list}\n\n"
+                        "Anything not listed still works normally."
+                    )
+                else:
+                    messagebox.showerror(
+                        "Still restricted",
+                        f"Still turned off for {time_left}:\n\n{feature_list}"
+                    )
+                self.status.set(f"Restricted for {time_left}: {feature_list}.")
                 return
 
-            remaining = PROMPT_MAX_VIOLATIONS - self._prompt_violations
             messagebox.showwarning(
                 "Can't use that description",
                 result["block_reason"] +
-                f"\n\n({remaining} attempt(s) left before the description box "
-                "turns off for this session.)"
+                (f"\n\n({next_in} attempt(s) left before more features get restricted.)"
+                 if next_in else "")
             )
-            self.status.set(f"Prompt blocked ({self._prompt_violations}/{PROMPT_MAX_VIOLATIONS} strikes) - "
-                             "describe the sound, not an artist/band.")
+            self.status.set("Prompt blocked - describe the sound, not an artist/band.")
             return
 
         if result["mentions_vocals"]:
@@ -348,6 +374,14 @@ class MusicGenApp:
         self.status.set("Applied description to the settings below - tweak anything, then Generate.")
 
     def on_generate(self):
+        if not self._feature_allowed("generate"):
+            messagebox.showwarning(
+                "Feature restricted",
+                "Generating music is temporarily turned off due to repeated "
+                "attempts to reference real artists/songs. Try again later."
+            )
+            return
+
         self.status.set("Generating...")
         self.root.update_idletasks()
 
@@ -374,12 +408,14 @@ class MusicGenApp:
             self.status.set("Generation failed - see error.")
             return
 
-        self.play_btn.config(state="normal" if HAS_AUDIO else "disabled")
-        self.export_wav_btn.config(state="normal")
+        self.play_btn.config(state="normal" if HAS_AUDIO and self._feature_allowed("play") else "disabled")
+        self.export_wav_btn.config(state="normal" if self._feature_allowed("export") else "disabled")
         self.status.set(f"Generated {self.genre_var.get()} - {', '.join(sorted(active))} - "
                          f"{self.bars_var.get()} bars @ {self.tempo_var.get()} BPM.")
 
     def on_play(self):
+        if not self._feature_allowed("play"):
+            return
         if self.buffer is None or not HAS_AUDIO:
             return
         fd, path = tempfile.mkstemp(suffix=".wav")
@@ -397,6 +433,8 @@ class MusicGenApp:
         self.status.set("Stopped.")
 
     def on_export_wav(self):
+        if not self._feature_allowed("export"):
+            return
         if self.buffer is None:
             return
         path = filedialog.asksaveasfilename(defaultextension=".wav", filetypes=[("WAV audio", "*.wav")])

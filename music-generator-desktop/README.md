@@ -68,6 +68,11 @@ Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
   explicit checkbox agreement) every time the app starts.
 - `THIRD-PARTY-NOTICES.md` - license notices for the open-source
   libraries (NumPy, Pygame) bundled into the Windows installer.
+- `restrictions.py` - the escalating feature-restriction ladder described
+  below, persisted to a small JSON file in this app's own local data
+  folder (`%LOCALAPPDATA%\Original Music Generator` on Windows) -
+  contained to this app on this PC, never system-wide, never roaming to
+  another machine, and never something that stops the app from opening.
 
 ## Before You Use This App
 
@@ -82,11 +87,11 @@ existing copyrighted recording or artist. The prompt box only accepts
 descriptions of sound (genre, instruments, mood, tempo) and rejects
 references to real artists, bands, or songs - but trying to work around
 that and use the app to copy someone else's copyrighted work doesn't make
-you immune from the consequences of doing so. Trigger that filter 3 times
-in one session and the description box turns itself off until you
-restart the app; nothing is saved to disk and nothing else is affected -
-genre, key, tempo, and instrument controls keep working, and you can
-still generate and export music. It's instrumental-only and never writes
+you immune from the consequences of doing so. Triggering that filter
+repeatedly escalates: 3 attempts turns off the description box for 24
+hours, then every 2 more attempts turns off one more feature (playback,
+then exporting, then generating) for another 24 hours - never the app
+itself, which always still opens. It's instrumental-only and never writes
 lyrics; any lyrics you add on top of the exported track are your own
 responsibility to make sure they're original. See `EULA.md` for the full
 text and `THIRD-PARTY-NOTICES.md` for bundled third-party licenses.

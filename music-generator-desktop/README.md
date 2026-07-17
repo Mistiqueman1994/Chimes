@@ -33,7 +33,8 @@ still runs and you can export WAV files.
 cd music-generator-desktop
 pip install -r requirements.txt pyinstaller
 pyinstaller --noconfirm --onefile --windowed --name "OriginalMusicGenerator" \
-  --icon assets/icon.ico --add-data "assets/icon.ico;assets" app.py
+  --icon assets/icon.ico --add-data "assets/icon.ico;assets" \
+  --add-data "EULA.md;." app.py
 makensis installer.nsi
 ```
 
@@ -63,8 +64,17 @@ Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
   the installer/exe icon).
 - `installer.nsi` - NSIS script that packages the PyInstaller build into a
   Windows installer.
+- `EULA.md` - the license agreement shown (and requiring explicit
+  checkbox agreement) every time the app starts.
+- `THIRD-PARTY-NOTICES.md` - license notices for the open-source
+  libraries (NumPy, Pygame) bundled into the Windows installer.
 
-## Copyright note
+## License agreement
+
+Every time the app starts, it shows `EULA.md` and requires you to check
+"I agree to the conditions of the EULA" before "Continue" is enabled;
+clicking "Decline" closes the app immediately. See `EULA.md` for the full
+terms and `THIRD-PARTY-NOTICES.md` for bundled third-party licenses.
 
 This app is built to make original music, not to recreate or imitate any
 existing copyrighted recording or artist. The prompt box only accepts

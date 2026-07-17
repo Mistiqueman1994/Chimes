@@ -12,6 +12,7 @@ Requires:  numpy, pygame  (pip install numpy pygame)
 
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
+import re
 import tempfile
 import os
 import sys
@@ -45,9 +46,7 @@ class MusicGenApp:
         self.melody = None
         self.buffer = None
 
-        self._build_ui()
-        self._apply_genre_defaults()
-        self.root.after(200, self._show_lyrics_disclaimer)
+        self._show_eula_gate()
 
     def _set_window_icon(self):
         icon_path = _resource_path("assets", "icon.ico")
@@ -59,24 +58,94 @@ class MusicGenApp:
         except Exception:
             pass
 
-    def _show_lyrics_disclaimer(self):
-        messagebox.showinfo(
-            "Before you use this app",
-            "This app is built to generate original, algorithmic music. It is "
-            "NOT intended to be used to recreate, copy, or imitate any existing "
-            "copyrighted song, recording, or artist's work - for example by "
-            "typing in details of a real song and trying to reproduce it. "
-            "Attempting to use this app that way is done entirely at your own "
-            "risk and is your responsibility, not the app creator's.\n\n"
-            "This app also generates instrumental music only - it never writes "
-            "or suggests lyrics. If you write or record your own lyrics over a "
-            "track you make here, you are solely responsible for making sure "
-            "those lyrics are your own original work. Using someone else's "
-            "copyrighted lyrics (even a line or two) is copyright infringement, "
-            "and any legal or financial consequences from that are yours to "
-            "bear - not the creator of this app.\n\n"
-            "This message will show each time the app starts."
+    def _load_eula_text(self):
+        with open(_resource_path("EULA.md"), "r", encoding="utf-8") as f:
+            return f.read()
+
+    _BOLD_RE = re.compile(r"\*\*(.+?)\*\*")
+
+    def _insert_markdown_lite(self, text_widget, md_text):
+        """Render the handful of Markdown constructs EULA.md actually uses
+        (# / ## headings, **bold**) instead of showing the raw symbols."""
+        text_widget.tag_configure("h1", font=("Segoe UI", 13, "bold"), spacing3=8)
+        text_widget.tag_configure("h2", font=("Segoe UI", 10, "bold"), spacing1=10, spacing3=4)
+        text_widget.tag_configure("bold", font=("Segoe UI", 9, "bold"))
+
+        for line in md_text.splitlines():
+            if line.startswith("## "):
+                text_widget.insert("end", line[3:] + "\n", "h2")
+                continue
+            if line.startswith("# "):
+                text_widget.insert("end", line[2:] + "\n", "h1")
+                continue
+
+            pos = 0
+            for m in self._BOLD_RE.finditer(line):
+                text_widget.insert("end", line[pos:m.start()])
+                text_widget.insert("end", m.group(1), "bold")
+                pos = m.end()
+            text_widget.insert("end", line[pos:] + "\n")
+
+    def _show_eula_gate(self):
+        """Blocking license-agreement screen shown before the app is usable.
+        Continue stays disabled until the checkbox is ticked; Decline closes
+        the app immediately without building the generator UI."""
+        try:
+            eula_text = self._load_eula_text()
+        except OSError as e:
+            messagebox.showerror(
+                "Can't start",
+                f"The license agreement couldn't be loaded, so the app can't start.\n\n{e}"
+            )
+            self.root.destroy()
+            return
+
+        self._gate_frame = ttk.Frame(self.root)
+        self._gate_frame.pack(fill="both", expand=True, padx=16, pady=16)
+
+        ttk.Label(self._gate_frame, text="License Agreement", font=("Segoe UI", 14, "bold")).pack(pady=(0, 6))
+        ttk.Label(
+            self._gate_frame,
+            text="Please read the agreement below. You must agree to it to use this app.",
+            font=("Segoe UI", 9), foreground="#555", wraplength=500
+        ).pack(pady=(0, 8))
+
+        text_frame = ttk.Frame(self._gate_frame)
+        text_frame.pack(fill="both", expand=True)
+        scrollbar = ttk.Scrollbar(text_frame)
+        scrollbar.pack(side="right", fill="y")
+        text_widget = tk.Text(text_frame, wrap="word", yscrollcommand=scrollbar.set, font=("Segoe UI", 9))
+        self._insert_markdown_lite(text_widget, eula_text)
+        text_widget.config(state="disabled")
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar.config(command=text_widget.yview)
+
+        self.eula_agree_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            self._gate_frame, text="I agree to the conditions of the EULA",
+            variable=self.eula_agree_var, command=self._update_eula_continue_state
+        ).pack(anchor="w", pady=(10, 8))
+
+        btn_row = ttk.Frame(self._gate_frame)
+        btn_row.pack(fill="x")
+        ttk.Button(btn_row, text="Decline", command=self._on_eula_decline).pack(side="right")
+        self.eula_continue_btn = ttk.Button(
+            btn_row, text="Continue", command=self._on_eula_agree, state="disabled"
         )
+        self.eula_continue_btn.pack(side="right", padx=(0, 6))
+
+    def _update_eula_continue_state(self):
+        self.eula_continue_btn.config(state="normal" if self.eula_agree_var.get() else "disabled")
+
+    def _on_eula_agree(self):
+        if not self.eula_agree_var.get():
+            return
+        self._gate_frame.destroy()
+        self._build_ui()
+        self._apply_genre_defaults()
+
+    def _on_eula_decline(self):
+        self.root.destroy()
 
     def _build_ui(self):
         pad = {"padx": 10, "pady": 5}

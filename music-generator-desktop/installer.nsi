@@ -36,6 +36,8 @@ Section "Install"
   SetOutPath "$INSTDIR"
   File "dist\${EXE_NAME}"
   File "assets\icon.ico"
+  File "EULA.md"
+  File "THIRD-PARTY-NOTICES.md"
 
   CreateDirectory "$SMPROGRAMS\${APPNAME}"
   CreateShortCut "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" "$INSTDIR\${EXE_NAME}" "" "$INSTDIR\icon.ico"
@@ -57,6 +59,8 @@ SectionEnd
 Section "Uninstall"
   Delete "$INSTDIR\${EXE_NAME}"
   Delete "$INSTDIR\icon.ico"
+  Delete "$INSTDIR\EULA.md"
+  Delete "$INSTDIR\THIRD-PARTY-NOTICES.md"
   Delete "$INSTDIR\Uninstall.exe"
   RMDir "$INSTDIR"
 

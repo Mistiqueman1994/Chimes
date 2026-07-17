@@ -25,7 +25,8 @@ jobs:
       - run: pip install -r requirements.txt pyinstaller
       - run: |
           pyinstaller --noconfirm --onefile --windowed --name "OriginalMusicGenerator" `
-            --icon assets/icon.ico --add-data "assets/icon.ico;assets" app.py
+            --icon assets/icon.ico --add-data "assets/icon.ico;assets" `
+            --add-data "EULA.md;." app.py
       - name: Add NSIS to PATH
         run: echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
       - run: New-Item -ItemType Directory -Force -Path dist_installer

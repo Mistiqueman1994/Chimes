@@ -6,7 +6,17 @@ Every sound is synthesized from scratch with basic oscillators, envelopes,
 and a distortion curve; there are no samples, loops, or recordings of any
 kind, and the app never generates vocals or lyrics.
 
-## Run it
+## Get the Windows installer
+
+Permanent download link (rebuilt automatically on every push to `main`):
+
+https://github.com/Mistiqueman1994/Chimes/releases/download/music-generator-latest/MusicGenerator-Setup.exe
+
+Run it and follow the installer - no admin rights required. It adds a Start
+Menu shortcut, an optional desktop shortcut, and an uninstaller listed under
+"Apps & Features".
+
+## Run from source
 
 ```
 cd music-generator-desktop
@@ -16,6 +26,19 @@ python app.py
 
 `pygame` is only needed for in-app playback; if it's not installed the app
 still runs and you can export WAV files.
+
+## Build the installer yourself
+
+```
+cd music-generator-desktop
+pip install -r requirements.txt pyinstaller
+pyinstaller --noconfirm --onefile --windowed --name "OriginalMusicGenerator" \
+  --icon assets/icon.ico --add-data "assets/icon.ico;assets" app.py
+makensis installer.nsi
+```
+
+Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
+`--add-data` separator is `;`; on macOS/Linux it's `:`.)
 
 ## What it does
 
@@ -38,6 +61,10 @@ still runs and you can export WAV files.
   attempts to reference a real artist, band, or song.
 - `lockout.py` - locks the app for 24 hours after 3 blocked-prompt
   attempts, persisted to a small JSON file in the user's home directory.
+- `assets/icon.ico` / `assets/icon.png` - app icon (window/taskbar icon and
+  the installer/exe icon).
+- `installer.nsi` - NSIS script that packages the PyInstaller build into a
+  Windows installer.
 
 ## Copyright note
 

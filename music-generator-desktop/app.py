@@ -14,10 +14,18 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import tempfile
 import os
+import sys
 
 import music_engine as me
 import prompt_parser as pp
 import lockout
+
+
+def _resource_path(*parts):
+    """Resolve a bundled resource path, working both from source and from a
+    PyInstaller-frozen executable (where files are unpacked to sys._MEIPASS)."""
+    base = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base, *parts)
 
 try:
     import pygame
@@ -33,6 +41,7 @@ class MusicGenApp:
         root.title("Original Music Generator - Full Band")
         root.geometry("560x760")
         root.resizable(False, False)
+        self._set_window_icon()
 
         locked, locked_until = lockout.is_locked()
         if locked:
@@ -45,6 +54,16 @@ class MusicGenApp:
         self._build_ui()
         self._apply_genre_defaults()
         self.root.after(200, self._show_lyrics_disclaimer)
+
+    def _set_window_icon(self):
+        icon_path = _resource_path("assets", "icon.ico")
+        try:
+            if sys.platform.startswith("win"):
+                self.root.iconbitmap(icon_path)
+            else:
+                self.root.iconphoto(True, tk.PhotoImage(file=_resource_path("assets", "icon.png")))
+        except Exception:
+            pass
 
     def _show_locked_screen(self, locked_until):
         for w in self.root.winfo_children():

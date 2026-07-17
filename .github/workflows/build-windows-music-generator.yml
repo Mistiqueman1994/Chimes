@@ -1,0 +1,46 @@
+name: Build Windows Music Generator app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'music-generator-desktop/**'
+      - '.github/workflows/build-windows-music-generator.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: music-generator-desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt pyinstaller
+      - run: |
+          pyinstaller --noconfirm --onefile --windowed --name "OriginalMusicGenerator" `
+            --icon assets/icon.ico --add-data "assets/icon.ico;assets" app.py
+      - name: Add NSIS to PATH
+        run: echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
+      - run: New-Item -ItemType Directory -Force -Path dist_installer
+      - run: makensis installer.nsi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MusicGenerator-windows-installer
+          path: music-generator-desktop/dist_installer/MusicGenerator-Setup.exe
+          retention-days: 30
+      - name: Publish permanent download via GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view music-generator-latest --repo ${{ github.repository }} 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release delete music-generator-latest --repo ${{ github.repository }} --yes --cleanup-tag
+          }
+          gh release create music-generator-latest dist_installer/MusicGenerator-Setup.exe --repo ${{ github.repository }} --title "Original Music Generator (Windows)" --notes "Windows installer for the Original Music Generator desktop app. Download and run MusicGenerator-Setup.exe to install."

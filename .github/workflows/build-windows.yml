@@ -8,6 +8,9 @@ on:
       - '.github/workflows/build-windows.yml'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -28,3 +31,7 @@ jobs:
           name: Snake-windows
           path: desktop-app/Snake-win32-x64.zip
           retention-days: 30
+      - name: Publish permanent download via GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create snake-latest Snake-win32-x64.zip --repo ${{ github.repository }} --title "Snake (Windows)" --notes "Automated Windows build of the Nokia-style Snake game. Download, unzip, run Snake.exe." --clobber

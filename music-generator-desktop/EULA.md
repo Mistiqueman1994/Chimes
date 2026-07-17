@@ -1,76 +1,60 @@
-# End User License Agreement
+# Before You Use This App
 
-Original Music Generator ("the App") is provided to you under the terms
-below. By checking "I agree to the conditions of the EULA" you accept
-these terms. If you do not agree, do not use the App.
+This isn't dense legal fine print - it's here to make sure you actually
+understand what this app does, what it doesn't do, and where
+responsibility falls if you use it in a way it wasn't built for. Checking
+"I agree to the conditions of the EULA" means you've read and understood
+this, not that you've signed a contract with a lawyer's blessing.
 
-## 1. What the App does
+## What this app actually does
 
-The App generates original instrumental backing tracks (drums, bass,
-rhythm guitar, lead guitar) entirely algorithmically - every sound is
-synthesized from basic oscillators, envelopes, and a distortion curve at
-generation time. The App does not use, embed, or reference samples,
-loops, or recordings of any existing song, artist, or performance, and it
-does not generate vocals, lyrics, or spoken words of any kind.
+This app generates original, algorithmic instrumental music - drums,
+bass, and guitars synthesized from scratch every time you click
+Generate. It does not use, embed, or reference samples, loops, or
+recordings of anyone else's music, and it does not write or generate
+vocals, lyrics, or spoken words of any kind.
 
-## 2. License grant
+## Trying to copy a real song doesn't work, and doesn't protect you
 
-Subject to your compliance with this Agreement, you are granted a
-personal, non-exclusive, non-transferable, revocable license to install
-and run the App for your own use. You may not redistribute, sell,
-sublicense, reverse engineer for the purpose of circumventing this
-Agreement, or represent the App as your own work.
+The prompt box only accepts descriptions of sound - genre, instruments,
+mood, tempo - and is built to reject attempts to reference real artists,
+bands, or songs. That filter is a convenience feature, not a guarantee.
+More importantly: nothing about this app changes how copyright law
+works. If you deliberately try to use this app, or anything you do with
+its output, to recreate, imitate, or reproduce someone else's
+copyrighted work, the fact that a tool was "algorithmic" does not make
+you immune from the consequences of that. Those consequences are yours
+to deal with, not this app's.
 
-## 3. Ownership of what you generate
+## Lyrics and vocals are entirely on you
 
-Audio you generate and export with the App is algorithmically produced at
-your direction. As between you and the App's creator, you own the
-exported audio files and are free to use them, including as a backing
-track for your own original vocals or lyrics.
+This app never writes, suggests, or generates lyrics or vocals - it only
+makes instrumental backing tracks. If you write or record your own
+lyrics or vocals over an exported track, that content needs to be your
+own original work. Using someone else's copyrighted lyrics - even a line
+or two - is copyright infringement, and any consequences from that are
+yours to deal with, not this app's.
 
-## 4. Your responsibilities
+## What you own
 
-- **Describe sound, not existing works.** The prompt box only accepts
-  descriptions of style, instruments, mood, and tempo. Do not attempt to
-  use it to reference, recreate, imitate, or reproduce any real artist,
-  band, or existing song. The App includes automated screening for this,
-  but that screening is a convenience feature, not a guarantee, and does
-  not shift responsibility away from you.
-- **Lyrics and vocals are entirely on you.** The App is instrumental-only
-  and never writes, suggests, or generates lyrics or vocals. Anything you
-  write, record, or layer on top of an exported track - including lyrics
-  - is your own original content, and you are solely responsible for
-  ensuring it does not infringe anyone else's copyright or other rights.
-- **Your use, your risk.** Any attempt to use the App to recreate,
-  imitate, or reproduce existing copyrighted material is done entirely at
-  your own risk and is your responsibility, not the App creator's.
+Audio you generate and export is produced algorithmically at your
+direction, and it's yours to use - including as a backing track for your
+own original vocals or lyrics.
 
-## 5. No warranty
+## No guarantees
 
-THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY
-KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND
-NON-INFRINGEMENT. THE APP'S CREATOR DOES NOT WARRANT THAT GENERATED AUDIO
-WILL BE ERROR-FREE, USABLE FOR ANY PARTICULAR PURPOSE, OR FREE OF THIRD-
-PARTY CLAIMS ARISING FROM YOUR OWN USE OF THE APP.
+This app is provided as-is, with no guarantees about it being error-free
+or fit for any particular purpose. Use it at your own risk.
 
-## 6. Limitation of liability
+## Third-party components
 
-TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE APP'S CREATOR SHALL NOT BE
-LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE
-DAMAGES, OR ANY LOSS OF DATA, REVENUE, OR GOODWILL, ARISING OUT OF OR
-RELATED TO YOUR USE OF THE APP, INCLUDING ANY CLAIM THAT CONTENT YOU
-GENERATED, EXPORTED, OR COMBINED WITH YOUR OWN MATERIAL (SUCH AS LYRICS
-OR VOCALS) INFRINGES A THIRD PARTY'S RIGHTS.
-
-## 7. Third-party components
-
-The App uses third-party open-source libraries at runtime. See
+This app uses open-source libraries at runtime. See
 `THIRD-PARTY-NOTICES.md`, included alongside this file, for their names,
 licenses, and copyright notices.
 
-## 8. Changes and termination
+---
 
-This Agreement is presented each time the App starts. Declining ends your
-session immediately without generating or exporting anything. The App's
-creator may update the App and this Agreement in future versions.
+By checking "I agree to the conditions of the EULA" below, you're
+confirming you understand the above - especially that using this app to
+copy someone else's copyrighted work doesn't make you immune from the
+consequences of doing so.

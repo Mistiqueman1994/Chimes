@@ -64,21 +64,26 @@ Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
   the installer/exe icon).
 - `installer.nsi` - NSIS script that packages the PyInstaller build into a
   Windows installer.
-- `EULA.md` - the license agreement shown (and requiring explicit
-  checkbox agreement) every time the app starts.
+- `EULA.md` - the "Before You Use This App" notice shown (and requiring
+  explicit checkbox agreement) every time the app starts.
 - `THIRD-PARTY-NOTICES.md` - license notices for the open-source
   libraries (NumPy, Pygame) bundled into the Windows installer.
 
-## License agreement
+## Before You Use This App
 
 Every time the app starts, it shows `EULA.md` and requires you to check
 "I agree to the conditions of the EULA" before "Continue" is enabled;
-clicking "Decline" closes the app immediately. See `EULA.md` for the full
-terms and `THIRD-PARTY-NOTICES.md` for bundled third-party licenses.
+clicking "Decline" closes the app immediately. This isn't meant as a
+lawyer-drafted contract - it's there to make sure you actually understand
+what the app does and doesn't do before you use it, in plain language:
 
 This app is built to make original music, not to recreate or imitate any
 existing copyrighted recording or artist. The prompt box only accepts
-descriptions of sound (genre, instruments, mood, tempo) - it rejects
-references to real artists, bands, or songs. It's instrumental-only and
+descriptions of sound (genre, instruments, mood, tempo) and rejects
+references to real artists, bands, or songs - but trying to work around
+that and use the app to copy someone else's copyrighted work doesn't make
+you immune from the consequences of doing so. It's instrumental-only and
 never writes lyrics; any lyrics you add on top of the exported track are
-your own responsibility to make sure they're original.
+your own responsibility to make sure they're original. See `EULA.md` for
+the full text and `THIRD-PARTY-NOTICES.md` for bundled third-party
+licenses.

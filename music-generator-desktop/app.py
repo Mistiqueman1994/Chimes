@@ -103,10 +103,11 @@ class MusicGenApp:
         self._gate_frame = ttk.Frame(self.root)
         self._gate_frame.pack(fill="both", expand=True, padx=16, pady=16)
 
-        ttk.Label(self._gate_frame, text="License Agreement", font=("Segoe UI", 14, "bold")).pack(pady=(0, 6))
+        ttk.Label(self._gate_frame, text="Before You Use This App", font=("Segoe UI", 14, "bold")).pack(pady=(0, 6))
         ttk.Label(
             self._gate_frame,
-            text="Please read the agreement below. You must agree to it to use this app.",
+            text="Please read this first - it explains what the app does and where "
+                 "responsibility falls if you use it to try to copy someone else's work.",
             font=("Segoe UI", 9), foreground="#555", wraplength=500
         ).pack(pady=(0, 8))
 

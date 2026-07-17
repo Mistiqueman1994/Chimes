@@ -19,7 +19,8 @@ import sys
 
 import music_engine as me
 import prompt_parser as pp
-import lockout
+
+PROMPT_MAX_VIOLATIONS = 3
 
 
 def _resource_path(*parts):
@@ -46,11 +47,7 @@ class MusicGenApp:
 
         self.melody = None
         self.buffer = None
-
-        locked, locked_until = lockout.is_locked()
-        if locked:
-            self._show_locked_screen(locked_until)
-            return
+        self._prompt_violations = 0
 
         self._show_eula_gate()
 
@@ -63,25 +60,6 @@ class MusicGenApp:
                 self.root.iconphoto(True, tk.PhotoImage(file=_resource_path("assets", "icon.png")))
         except Exception:
             pass
-
-    def _show_locked_screen(self, locked_until):
-        for w in self.root.winfo_children():
-            w.destroy()
-        frame = ttk.Frame(self.root)
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
-        ttk.Label(frame, text="App Locked", font=("Segoe UI", 16, "bold"), foreground="#a33").pack(pady=(10, 8))
-        ttk.Label(
-            frame,
-            text=(
-                "This app was locked after 3 attempts to use the prompt box to "
-                "reference real copyrighted artists/songs.\n\n"
-                f"Time remaining: {lockout.remaining_time_str(locked_until)}\n\n"
-                "The app will unlock automatically once the 24-hour period has "
-                "passed. In the meantime, please close this window."
-            ),
-            wraplength=480, justify="left"
-        ).pack(pady=(0, 10))
-        ttk.Button(frame, text="Close", command=self.root.destroy).pack()
 
     def _load_eula_text(self):
         with open(_resource_path("EULA.md"), "r", encoding="utf-8") as f:
@@ -186,12 +164,16 @@ class MusicGenApp:
         prompt_box = ttk.LabelFrame(outer, text="Describe the track (optional)")
         prompt_box.pack(fill="x", **pad)
         self.prompt_var = tk.StringVar()
-        entry = ttk.Entry(prompt_box, textvariable=self.prompt_var, width=58)
-        entry.pack(side="left", padx=6, pady=8, fill="x", expand=True)
-        ttk.Button(prompt_box, text="Apply", command=self.on_apply_prompt).pack(side="left", padx=6)
-        ttk.Label(outer, text="Describe style/instruments only - no artist, band, or song names "
-                              "(and no vocals - this app is instrumental-only).",
-                  font=("Segoe UI", 8), foreground="#777", wraplength=520).pack(pady=(0, 8))
+        self.prompt_entry = ttk.Entry(prompt_box, textvariable=self.prompt_var, width=58)
+        self.prompt_entry.pack(side="left", padx=6, pady=8, fill="x", expand=True)
+        self.prompt_apply_btn = ttk.Button(prompt_box, text="Apply", command=self.on_apply_prompt)
+        self.prompt_apply_btn.pack(side="left", padx=6)
+        self.prompt_hint_label = ttk.Label(
+            outer, text="Describe style/instruments only - no artist, band, or song names "
+                        "(and no vocals - this app is instrumental-only).",
+            font=("Segoe UI", 8), foreground="#777", wraplength=520
+        )
+        self.prompt_hint_label.pack(pady=(0, 8))
 
         # --- Genre ---
         row = ttk.Frame(outer); row.pack(fill="x", **pad)
@@ -302,30 +284,44 @@ class MusicGenApp:
         except ValueError:
             return abs(hash(s)) % (10 ** 8)
 
+    def _disable_prompt_box(self):
+        self.prompt_var.set("")
+        self.prompt_entry.config(state="disabled")
+        self.prompt_apply_btn.config(state="disabled")
+        self.prompt_hint_label.config(
+            text="Description box turned off for this session after repeated attempts "
+                 "to reference a real artist/band/song. Use the controls below instead."
+        )
+
     def on_apply_prompt(self):
         text = self.prompt_var.get()
         result = pp.parse_prompt(text)
 
         if result["blocked"]:
-            violations, newly_locked, locked_until = lockout.register_violation()
+            self._prompt_violations += 1
 
-            if newly_locked:
+            if self._prompt_violations >= PROMPT_MAX_VIOLATIONS:
+                self._disable_prompt_box()
                 messagebox.showerror(
-                    "App locked",
+                    "Description box turned off",
                     "That's 3 attempts to reference a real copyrighted artist/song "
-                    "in the prompt box. This app is now locked for 24 hours.\n\n"
-                    f"Time remaining: {lockout.remaining_time_str(locked_until)}"
+                    "in the prompt box. The description box is now turned off for "
+                    "the rest of this session.\n\n"
+                    "Everything else still works normally - use the genre, key, "
+                    "tempo, and instrument controls below to generate and export "
+                    "music."
                 )
-                self._show_locked_screen(locked_until)
+                self.status.set("Description box turned off for this session - use the controls below to generate music.")
                 return
 
-            remaining = lockout.MAX_VIOLATIONS - violations
+            remaining = PROMPT_MAX_VIOLATIONS - self._prompt_violations
             messagebox.showwarning(
                 "Can't use that description",
                 result["block_reason"] +
-                f"\n\n({remaining} attempt(s) left before this app locks for 24 hours.)"
+                f"\n\n({remaining} attempt(s) left before the description box "
+                "turns off for this session.)"
             )
-            self.status.set(f"Prompt blocked ({violations}/{lockout.MAX_VIOLATIONS} strikes) - "
+            self.status.set(f"Prompt blocked ({self._prompt_violations}/{PROMPT_MAX_VIOLATIONS} strikes) - "
                              "describe the sound, not an artist/band.")
             return
 

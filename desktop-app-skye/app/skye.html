@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>Skye</title>
+<link rel="manifest" href="skye-manifest.json">
+<meta name="theme-color" content="#060B1F">
+<link rel="icon" href="icon-skye-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-skye-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Skye">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Fraunces:ital,wght@0,400;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky-top: #1E6FA8;
+    --sky-bottom: #6EC6E8;
+    --ink: #ffffff;
+    --ink-soft: rgba(255,255,255,0.72);
+    --orb: #FFD24C;
+    --orb-glow: rgba(255,210,76,0.55);
+    --panel-bg: rgba(6,11,31,0.55);
+    --transition-speed: 3s;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Space Grotesk', sans-serif;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+    transition: background var(--transition-speed) ease;
+  }
+  #sky {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--ink);
+    user-select: none;
+  }
+  /* Stars */
+  #stars {
+    position: absolute; inset: 0; overflow: hidden;
+    opacity: 0; transition: opacity var(--transition-speed) ease;
+    pointer-events: none;
+  }
+  #stars span {
+    position: absolute; background: #fff; border-radius: 50%;
+    animation: twinkle 3.5s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+  /* Arc path for sun/moon */
+  #arc-wrap { position: absolute; inset: 0; pointer-events: none; }
+  #orb {
+    position: absolute;
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: var(--orb);
+    box-shadow: 0 0 40px 14px var(--orb-glow);
+    transition: background 2s ease, box-shadow 2s ease;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  #orb.moon {
+    background: radial-gradient(circle at 38% 35%, #ffffff, #d8def0 60%, #b9c2dc 100%);
+  }
+  #orb.moon::after {
+    content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 62% 40%, rgba(120,130,160,0.35) 0 8%, transparent 9%),
+                radial-gradient(circle at 40% 65%, rgba(120,130,160,0.3) 0 10%, transparent 11%);
+  }
+
+  /* Clock face */
+  #face {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    text-align: center;
+  }
+  #time {
+    font-weight: 700;
+    font-size: clamp(3.2rem, 15vw, 7rem);
+    letter-spacing: 0.02em;
+    line-height: 1;
+    text-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  }
+  #ampm { font-size: 0.32em; font-weight: 500; margin-left: 0.15em; vertical-align: middle; opacity: 0.85; }
+  #date {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1rem, 3.2vw, 1.5rem);
+    color: var(--ink-soft);
+    letter-spacing: 0.01em;
+  }
+  #brand-mark, #brand-mark-af {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(0.95rem, 3vw, 1.3rem);
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    opacity: 0.85;
+  }
+  #brand-mark-af { margin-bottom: 16px; }
+  #phase-label {
+    margin-top: 4px;
+    font-size: 0.75rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  #sw-btn {
+    position: fixed; top: env(safe-area-inset-top, 16px); left: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--panel-bg); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: var(--ink); font-size: 1.15rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+  }
+  #sw-panel {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(4,8,20,0.72); backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #sw-panel.open { display: flex; }
+  #sw-card {
+    width: 100%; max-width: 380px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 18px;
+    padding: 28px 24px;
+    color: #fff;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  #sw-card h2 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-style: italic;
+    margin: 0 0 18px; font-size: 1.4rem;
+  }
+  #sw-display {
+    font-weight: 700; font-size: clamp(2.6rem, 12vw, 4rem);
+    letter-spacing: 0.02em; line-height: 1; margin-bottom: 10px;
+  }
+  #sw-tenths { font-size: 0.5em; opacity: 0.75; }
+  #sw-hint { margin-bottom: 20px; }
+  #sw-buttons { display: flex; gap: 10px; }
+  .sw-action:disabled { opacity: 0.4; cursor: default; }
+  #sw-laps {
+    list-style: none; margin: 16px 0 0; padding: 0;
+    max-height: 160px; overflow-y: auto; text-align: left;
+  }
+  #sw-laps li {
+    display: flex; justify-content: space-between;
+    padding: 8px 4px; font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.85);
+  }
+  #sw-laps li span:first-child { color: rgba(255,255,255,0.55); }
+  .sw-action {
+    flex: 1; padding: 14px; border-radius: 10px; border: none;
+    font-size: 1rem; font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  #sw-start { background: #FFD24C; color: #1a1400; }
+  #sw-start.running { background: #FF6B6B; color: #2a0000; }
+  .sw-secondary { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.2) !important; }
+  #sw-close {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    background: rgba(255,255,255,0.12); color: #fff; margin-top: 14px;
+    border: 1px solid rgba(255,255,255,0.2); font-family: inherit; font-size: 0.95rem; cursor: pointer;
+  }
+
+  #calc-btn {
+    position: fixed; bottom: env(safe-area-inset-bottom, 16px); right: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--panel-bg); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: var(--ink); font-size: 1.15rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+  }
+  #calc-panel {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(4,8,20,0.72); backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #calc-panel.open { display: flex; }
+  #calc-card {
+    width: 100%; max-width: 340px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 18px;
+    padding: 24px;
+    color: #fff;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  #calc-card h2 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-style: italic;
+    margin: 0 0 10px; font-size: 1.4rem;
+  }
+  #calc-hint { margin-bottom: 16px; }
+  #calc-display {
+    font-weight: 700; font-size: clamp(2rem, 9vw, 2.6rem);
+    background: rgba(0,0,0,0.2); border-radius: 12px;
+    padding: 16px 14px; margin-bottom: 14px;
+    overflow-x: auto; white-space: nowrap; text-align: right;
+  }
+  #calc-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .calc-key {
+    padding: 16px 0; border-radius: 10px; border: none;
+    font-family: inherit; font-size: 1.15rem; font-weight: 600;
+    background: rgba(255,255,255,0.1); color: #fff; cursor: pointer;
+  }
+  .calc-key:empty { visibility: hidden; cursor: default; }
+  .calc-op { background: rgba(255,210,76,0.25); color: #FFD24C; }
+  .calc-fn { background: rgba(255,107,107,0.2); color: #FF9B9B; }
+  .calc-equals { background: #FFD24C; color: #1a1400; }
+  .calc-zero { grid-column: span 2; }
+  #calc-close {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    background: rgba(255,255,255,0.12); color: #fff; margin-top: 16px;
+    border: 1px solid rgba(255,255,255,0.2); font-family: inherit; font-size: 0.95rem; cursor: pointer;
+  }
+
+  #timer-btn {
+    position: fixed; bottom: env(safe-area-inset-bottom, 16px); left: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--panel-bg); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: var(--ink); font-size: 1.15rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+  }
+  #timer-panel {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(4,8,20,0.72); backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #timer-panel.open { display: flex; }
+  #timer-card {
+    width: 100%; max-width: 380px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 18px;
+    padding: 28px 24px;
+    color: #fff;
+    text-align: center;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  #timer-card h2 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-style: italic;
+    margin: 0 0 10px; font-size: 1.4rem;
+  }
+  #timer-card .hint { margin-bottom: 18px; }
+  #timer-display {
+    font-weight: 700; font-size: clamp(2.2rem, 10vw, 3.2rem);
+    letter-spacing: 0.02em; line-height: 1; margin-bottom: 18px;
+  }
+  #timer-keypad {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 20px;
+  }
+  #timer-keypad.disabled { opacity: 0.4; pointer-events: none; }
+  .timer-key {
+    padding: 14px 0; border-radius: 10px; border: none;
+    font-family: inherit; font-size: 1.1rem; font-weight: 600;
+    background: rgba(255,255,255,0.1); color: #fff; cursor: pointer;
+  }
+  .timer-key-fn { background: rgba(255,107,107,0.2); color: #FF9B9B; }
+  input[type="number"] {
+    width: 80px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 8px; color: #fff; padding: 8px 10px; font-family: inherit; font-size: 1rem;
+    text-align: center;
+  }
+  #timer-buttons { display: flex; gap: 10px; }
+  #timer-close {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    background: rgba(255,255,255,0.12); color: #fff; margin-top: 14px;
+    border: 1px solid rgba(255,255,255,0.2); font-family: inherit; font-size: 0.95rem; cursor: pointer;
+  }
+
+  /* Analogue face */
+  #analogue-face { display: none; z-index: 2; }
+  #analogue-face.active { display: block; }
+  #digital-face.hidden { display: none; }
+  .af-rim {
+    position: relative;
+    width: clamp(220px, 58vw, 320px);
+    height: clamp(220px, 58vw, 320px);
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.55);
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(2px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.2), inset 0 0 30px rgba(255,255,255,0.08);
+  }
+  .af-tick {
+    position: absolute; left: 50%; top: 50%;
+    width: 2px; height: 10%;
+    background: rgba(255,255,255,0.6);
+    transform-origin: 50% 0%;
+    margin-left: -1px;
+  }
+  .af-tick.major { width: 3px; background: #fff; }
+  .af-num {
+    position: absolute;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1rem, 3.2vw, 1.3rem);
+    color: #fff;
+    transform: translate(-50%, -50%);
+  }
+  .af-hand {
+    position: absolute; left: 50%; bottom: 50%;
+    transform-origin: 50% 100%;
+    border-radius: 4px;
+    background: #fff;
+  }
+  .af-hour { width: 6px; height: 26%; margin-left: -3px; background: #fff; }
+  .af-min { width: 4px; height: 36%; margin-left: -2px; background: #fff; opacity: 0.92; }
+  .af-sec { width: 2px; height: 40%; margin-left: -1px; background: var(--orb); }
+  .af-center {
+    position: absolute; left: 50%; top: 50%; width: 14px; height: 14px;
+    background: #fff; border-radius: 50%; transform: translate(-50%, -50%);
+    border: 2px solid var(--orb);
+  }
+  #af-date {
+    text-align: center; margin-top: 16px;
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 500;
+    font-size: clamp(1rem, 3.2vw, 1.5rem); color: var(--ink-soft);
+  }
+
+  #mic-indicator {
+    position: fixed; top: calc(env(safe-area-inset-top, 16px) + 52px); right: 24px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    z-index: 10;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+  }
+  #mic-indicator.listening {
+    background: #4ADE80;
+    box-shadow: 0 0 10px 3px rgba(74,222,128,0.6);
+    animation: mic-pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes mic-pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  /* Settings gear */
+  #gear-btn {
+    position: fixed; top: env(safe-area-inset-top, 16px); right: 16px;
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--panel-bg); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.18);
+    color: var(--ink); font-size: 1.2rem;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10;
+  }
+  #panel {
+    position: fixed; inset: 0; z-index: 20;
+    background: rgba(4,8,20,0.72); backdrop-filter: blur(10px);
+    display: none; align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  #panel.open { display: flex; }
+  #panel-card {
+    width: 100%; max-width: 380px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 18px;
+    padding: 24px;
+    color: #fff;
+    font-family: 'Space Grotesk', sans-serif;
+    max-height: 86vh; overflow-y: auto;
+  }
+  #panel-card h2 {
+    font-family: 'Fraunces', serif; font-weight: 600; font-style: italic;
+    margin: 0 0 18px; font-size: 1.4rem;
+  }
+  .row { margin-bottom: 18px; }
+  .row label {
+    display: block; font-size: 0.78rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: rgba(255,255,255,0.65); margin-bottom: 8px;
+  }
+  .row-inline { display: flex; align-items: center; justify-content: space-between; }
+  .time-inputs { display: flex; align-items: center; gap: 10px; }
+  input[type="time"] {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 8px; color: #fff; padding: 8px 10px; font-family: inherit; font-size: 0.95rem;
+    color-scheme: dark;
+  }
+  .switch {
+    position: relative; width: 46px; height: 26px; flex-shrink: 0;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: rgba(255,255,255,0.25); border-radius: 999px; transition: 0.2s;
+  }
+  .slider::before {
+    content: ''; position: absolute; width: 20px; height: 20px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: 0.2s;
+  }
+  input:checked + .slider { background: #FFD24C; }
+  input:checked + .slider::before { transform: translateX(20px); }
+  button {
+    font-family: inherit; cursor: pointer;
+  }
+  #test-btn, #close-btn {
+    width: 100%; padding: 12px; border-radius: 10px; border: none;
+    font-size: 0.95rem; font-weight: 500; margin-top: 4px;
+  }
+  #test-btn { background: #FFD24C; color: #1a1400; }
+  #close-btn { background: rgba(255,255,255,0.12); color: #fff; margin-top: 12px; border: 1px solid rgba(255,255,255,0.2); }
+  .hint { font-size: 0.78rem; color: rgba(255,255,255,0.55); margin-top: 6px; line-height: 1.4; }
+  select {
+    width: 100%; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 8px; color: #fff; padding: 8px 10px; font-family: inherit; font-size: 0.95rem;
+  }
+  select option { color: #000; }
+</style>
+</head>
+<body>
+
+<div id="sky">
+  <div id="stars"></div>
+  <div id="arc-wrap"><div id="orb"></div></div>
+  <div id="face">
+    <div id="digital-face">
+      <div id="brand-mark">Skye</div>
+      <div id="time">--:--<span id="ampm"></span></div>
+      <div id="date">-</div>
+      <div id="phase-label">-</div>
+    </div>
+    <div id="analogue-face">
+      <div id="brand-mark-af">Skye</div>
+      <div class="af-rim" id="af-rim">
+        <div class="af-hand af-hour" id="af-hour"></div>
+        <div class="af-hand af-min" id="af-min"></div>
+        <div class="af-hand af-sec" id="af-sec"></div>
+        <div class="af-center"></div>
+      </div>
+      <div id="af-date">-</div>
+    </div>
+  </div>
+</div>
+
+<button id="gear-btn" aria-label="Settings">⚙</button>
+<button id="sw-btn" aria-label="Stopwatch">⏱</button>
+<button id="calc-btn" aria-label="Calculator">🧮</button>
+<button id="timer-btn" aria-label="Timer">⏲</button>
+<div id="mic-indicator" aria-hidden="true"></div>
+
+<div id="timer-panel">
+  <div id="timer-card">
+    <h2>Timer</h2>
+    <div class="hint">Reads out each digit as you enter it, reads back the full time when started, then beeps and says "Timer done" when it finishes. This can't be turned off.</div>
+    <div id="timer-display">00:00:00</div>
+    <div id="timer-keypad">
+      <button class="timer-key" data-digit="1">1</button>
+      <button class="timer-key" data-digit="2">2</button>
+      <button class="timer-key" data-digit="3">3</button>
+      <button class="timer-key" data-digit="4">4</button>
+      <button class="timer-key" data-digit="5">5</button>
+      <button class="timer-key" data-digit="6">6</button>
+      <button class="timer-key" data-digit="7">7</button>
+      <button class="timer-key" data-digit="8">8</button>
+      <button class="timer-key" data-digit="9">9</button>
+      <button class="timer-key timer-key-fn" data-action="clear">C</button>
+      <button class="timer-key" data-digit="0">0</button>
+      <button class="timer-key timer-key-fn" data-action="backspace">⌫</button>
+    </div>
+    <div id="timer-buttons">
+      <button id="timer-start" class="sw-action">Start</button>
+      <button id="timer-reset" class="sw-action sw-secondary">Reset</button>
+    </div>
+    <button id="timer-close">Close</button>
+  </div>
+</div>
+
+<div id="calc-panel">
+  <div id="calc-card">
+    <h2>Calculator</h2>
+    <div class="hint" id="calc-hint">Reads out every number, operation, and result out loud. This can't be turned off.</div>
+    <div id="calc-display">0</div>
+    <div id="calc-grid">
+      <button class="calc-key calc-fn" data-action="clear">C</button>
+      <button class="calc-key calc-fn"></button>
+      <button class="calc-key calc-fn"></button>
+      <button class="calc-key calc-op" data-op="÷">÷</button>
+
+      <button class="calc-key" data-digit="7">7</button>
+      <button class="calc-key" data-digit="8">8</button>
+      <button class="calc-key" data-digit="9">9</button>
+      <button class="calc-key calc-op" data-op="×">×</button>
+
+      <button class="calc-key" data-digit="4">4</button>
+      <button class="calc-key" data-digit="5">5</button>
+      <button class="calc-key" data-digit="6">6</button>
+      <button class="calc-key calc-op" data-op="−">−</button>
+
+      <button class="calc-key" data-digit="1">1</button>
+      <button class="calc-key" data-digit="2">2</button>
+      <button class="calc-key" data-digit="3">3</button>
+      <button class="calc-key calc-op" data-op="+">+</button>
+
+      <button class="calc-key calc-zero" data-digit="0">0</button>
+      <button class="calc-key" data-action="decimal">.</button>
+      <button class="calc-key calc-equals" data-action="equals">=</button>
+    </div>
+    <button id="calc-close">Close</button>
+  </div>
+</div>
+
+<div id="sw-panel">
+  <div id="sw-card">
+    <h2>Stopwatch</h2>
+    <div id="sw-display">00:00<span id="sw-tenths">.0</span></div>
+    <div class="hint" id="sw-hint">Announces every second while running, plus start, stop, reset, and each lap out loud. This can't be turned off.</div>
+    <div id="sw-buttons">
+      <button id="sw-start" class="sw-action">Start</button>
+      <button id="sw-lap" class="sw-action sw-secondary" disabled>Lap</button>
+      <button id="sw-reset" class="sw-action sw-secondary">Reset</button>
+    </div>
+    <ul id="sw-laps" aria-live="off"></ul>
+    <button id="sw-close">Close</button>
+  </div>
+</div>
+
+<div id="panel">
+  <div id="panel-card">
+    <h2>Skye settings</h2>
+
+    <div class="row row-inline">
+      <label style="margin:0;">Keep screen awake</label>
+      <label class="switch">
+        <input type="checkbox" id="wakelock-toggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="row" id="wakelock-hint-row">
+      <div class="hint" id="wakelock-hint">Stops the screen dimming or locking on its own while Skye is open, so the clock, a running timer, or the stopwatch stay visible. Only works while the screen is on — it can't stop you from manually locking your phone, and iPhone needs iOS 16.4 or later.</div>
+    </div>
+
+    <div class="row">
+      <label>Clock face</label>
+      <select id="face-style">
+        <option value="digital">Digital</option>
+        <option value="analogue">Analogue</option>
+      </select>
+    </div>
+
+    <div class="row row-inline">
+      <label style="margin:0;">24-hour time (digital)</label>
+      <label class="switch">
+        <input type="checkbox" id="format-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row row-inline">
+      <label style="margin:0;">Speak the time</label>
+      <label class="switch">
+        <input type="checkbox" id="speech-toggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row row-inline">
+      <label style="margin:0;">"Hey Skye" voice activation</label>
+      <label class="switch">
+        <input type="checkbox" id="wake-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="row" id="wake-hint-row">
+      <div class="hint" id="wake-hint">Say "Hey Skye, what time is it?" any time and Skye will answer. Needs microphone access — your browser will ask to allow it. Works in Chrome, Edge, and Safari, wherever the browser allows it.</div>
+    </div>
+
+    <div class="row row-inline">
+      <label style="margin:0;">Include date in announcement</label>
+      <label class="switch">
+        <input type="checkbox" id="date-toggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+
+    <div class="row">
+      <label>Silent period (no spoken announcements)</label>
+      <div class="time-inputs">
+        <input type="time" id="silent-start" value="22:00">
+        <span style="opacity:0.6;">to</span>
+        <input type="time" id="silent-end" value="07:00">
+      </div>
+      <div class="hint">Announcements are skipped between these times. Wraps past midnight automatically.</div>
+    </div>
+
+    <div class="row">
+      <label>Skye's voice</label>
+      <div class="hint" style="margin:0;">Skye speaks with <span id="voice-name">a voice</span> — this can't be changed, so it's always the same voice.</div>
+    </div>
+
+    <button id="test-btn">▶ Test announcement</button>
+    <button id="close-btn">Close</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  const timeEl = document.getElementById('time');
+  const ampmEl = document.getElementById('ampm');
+  const dateEl = document.getElementById('date');
+  const phaseEl = document.getElementById('phase-label');
+  const orb = document.getElementById('orb');
+  const starsWrap = document.getElementById('stars');
+  const root = document.documentElement.style;
+
+  const gearBtn = document.getElementById('gear-btn');
+  const panel = document.getElementById('panel');
+  const closeBtn = document.getElementById('close-btn');
+  const testBtn = document.getElementById('test-btn');
+  const speechToggle = document.getElementById('speech-toggle');
+  const wakelockToggle = document.getElementById('wakelock-toggle');
+  const wakelockHint = document.getElementById('wakelock-hint');
+  const dateToggle = document.getElementById('date-toggle');
+  const silentStart = document.getElementById('silent-start');
+  const silentEnd = document.getElementById('silent-end');
+  const voiceNameEl = document.getElementById('voice-name');
+  const faceStyleSelect = document.getElementById('face-style');
+  const formatToggle = document.getElementById('format-toggle');
+  const digitalFace = document.getElementById('digital-face');
+  const analogueFace = document.getElementById('analogue-face');
+  const afRim = document.getElementById('af-rim');
+  const afHour = document.getElementById('af-hour');
+  const afMin = document.getElementById('af-min');
+  const afSec = document.getElementById('af-sec');
+  const afDate = document.getElementById('af-date');
+  const wakeToggle = document.getElementById('wake-toggle');
+  const wakeHint = document.getElementById('wake-hint');
+  const micIndicator = document.getElementById('mic-indicator');
+  const swBtn = document.getElementById('sw-btn');
+  const swPanel = document.getElementById('sw-panel');
+  const swClose = document.getElementById('sw-close');
+  const swDisplay = document.getElementById('sw-display');
+  const swTenths = document.getElementById('sw-tenths');
+  const swStart = document.getElementById('sw-start');
+  const swLapBtn = document.getElementById('sw-lap');
+  const swReset = document.getElementById('sw-reset');
+  const swLapsList = document.getElementById('sw-laps');
+  const calcBtn = document.getElementById('calc-btn');
+  const calcPanel = document.getElementById('calc-panel');
+  const calcClose = document.getElementById('calc-close');
+  const calcDisplayEl = document.getElementById('calc-display');
+  const calcGrid = document.getElementById('calc-grid');
+  const timerBtn = document.getElementById('timer-btn');
+  const timerPanel = document.getElementById('timer-panel');
+  const timerClose = document.getElementById('timer-close');
+  const timerDisplayEl = document.getElementById('timer-display');
+  const timerKeypad = document.getElementById('timer-keypad');
+  const timerStartBtn = document.getElementById('timer-start');
+  const timerResetBtn = document.getElementById('timer-reset');
+
+  // ---- Build analogue face ticks & numerals once ----
+  for (let i = 0; i < 60; i++) {
+    const tick = document.createElement('div');
+    tick.className = 'af-tick' + (i % 5 === 0 ? ' major' : '');
+    tick.style.height = (i % 5 === 0 ? '10%' : '5%');
+    tick.style.transform = `rotate(${i * 6}deg)`;
+    afRim.appendChild(tick);
+  }
+  [[12, 50, 12], [3, 88, 50], [6, 50, 88], [9, 12, 50]].forEach(([num, left, top]) => {
+    const el = document.createElement('div');
+    el.className = 'af-num';
+    el.style.left = left + '%';
+    el.style.top = top + '%';
+    el.textContent = num;
+    afRim.appendChild(el);
+  });
+
+  // ---- Stars ----
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElement('span');
+    const size = Math.random() * 2 + 1;
+    s.style.width = size + 'px';
+    s.style.height = size + 'px';
+    s.style.left = Math.random() * 100 + '%';
+    s.style.top = Math.random() * 70 + '%';
+    s.style.animationDelay = (Math.random() * 3.5) + 's';
+    starsWrap.appendChild(s);
+  }
+
+  // ---- Sun/moon schedule (approx civil day; simple + predictable) ----
+  const SUNRISE = 6.0, SUNSET = 18.0; // hours, 24h
+  const DAY_SKY_TOP = [30, 111, 168];
+  const DAY_SKY_BOTTOM = [110, 198, 232];
+  const NIGHT_SKY_TOP = [6, 11, 31];
+  const NIGHT_SKY_BOTTOM = [22, 35, 63];
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function lerpColor(c1, c2, t) {
+    return `rgb(${Math.round(lerp(c1[0], c2[0], t))}, ${Math.round(lerp(c1[1], c2[1], t))}, ${Math.round(lerp(c1[2], c2[2], t))})`;
+  }
+
+  function updateSky(hoursDecimal) {
+    // blend window around sunrise/sunset for dawn/dusk transition (±0.75h)
+    const blend = 0.75;
+    let dayness; // 0 = full night, 1 = full day
+    if (hoursDecimal >= SUNRISE + blend && hoursDecimal <= SUNSET - blend) {
+      dayness = 1;
+    } else if (hoursDecimal <= SUNRISE - blend || hoursDecimal >= SUNSET + blend) {
+      dayness = 0;
+    } else if (hoursDecimal < SUNRISE + blend) {
+      dayness = (hoursDecimal - (SUNRISE - blend)) / (2 * blend);
+    } else {
+      dayness = 1 - (hoursDecimal - (SUNSET - blend)) / (2 * blend);
+    }
+    dayness = Math.max(0, Math.min(1, dayness));
+
+    const top = lerpColor(NIGHT_SKY_TOP, DAY_SKY_TOP, dayness);
+    const bottom = lerpColor(NIGHT_SKY_BOTTOM, DAY_SKY_BOTTOM, dayness);
+    root.setProperty('--sky-top', top);
+    root.setProperty('--sky-bottom', bottom);
+    starsWrap.style.opacity = 1 - dayness;
+
+    return dayness;
+  }
+
+  function updateOrb(hoursDecimal) {
+    let isDay, progress; // progress 0->1 across that orb's visible arc
+    if (hoursDecimal >= SUNRISE && hoursDecimal < SUNSET) {
+      isDay = true;
+      progress = (hoursDecimal - SUNRISE) / (SUNSET - SUNRISE);
+    } else {
+      isDay = false;
+      // night runs from SUNSET to SUNRISE next day
+      let h = hoursDecimal;
+      if (h < SUNRISE) h += 24;
+      progress = (h - SUNSET) / (24 - (SUNSET - SUNRISE));
+    }
+    // Arc: angle 180deg (rise, left) -> 0deg (set, right), height via sine
+    const angleDeg = 180 - (progress * 180);
+    const angleRad = angleDeg * Math.PI / 180;
+    const radiusX = 44; // vw-ish, percentage based
+    const radiusY = 34;
+    const x = 50 + radiusX * Math.cos(angleRad);
+    const y = 78 - radiusY * Math.sin(angleRad);
+
+    orb.style.left = x + '%';
+    orb.style.top = y + '%';
+    orb.classList.toggle('moon', !isDay);
+    if (isDay) {
+      orb.style.setProperty('--orb-glow', 'rgba(255,210,76,0.55)');
+    }
+    return isDay;
+  }
+
+  function formatTime(d) {
+    // For speech + 12-hour display purposes (always 12h + AM/PM here)
+    let h = d.getHours();
+    const m = d.getMinutes();
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    const mm = m.toString().padStart(2, '0');
+    return { h, mm, ampm };
+  }
+
+  function formatDate(d) {
+    return d.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  function renderDigital(now) {
+    const t = formatTime(now);
+    if (formatToggle.checked) {
+      const h24 = now.getHours().toString().padStart(2, '0');
+      timeEl.innerHTML = `${h24}:${t.mm}`;
+    } else {
+      timeEl.innerHTML = `${t.h}:${t.mm}<span id="ampm">${t.ampm}</span>`;
+    }
+    dateEl.textContent = formatDate(now);
+  }
+
+  function renderAnalogue(now) {
+    const h = now.getHours() % 12;
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    const hourDeg = (h + m / 60) * 30;
+    const minDeg = (m + s / 60) * 6;
+    const secDeg = s * 6;
+    afHour.style.transform = `rotate(${hourDeg}deg)`;
+    afMin.style.transform = `rotate(${minDeg}deg)`;
+    afSec.style.transform = `rotate(${secDeg}deg)`;
+    afDate.textContent = formatDate(now);
+  }
+
+  function applyFaceStyle() {
+    const isAnalogue = faceStyleSelect.value === 'analogue';
+    analogueFace.classList.toggle('active', isAnalogue);
+    digitalFace.classList.toggle('hidden', isAnalogue);
+  }
+
+  function tick() {
+    const now = new Date();
+    const hoursDecimal = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+
+    const dayness = updateSky(hoursDecimal);
+    const isDay = updateOrb(hoursDecimal);
+    phaseEl.textContent = isDay ? 'Daylight' : 'Night';
+
+    renderDigital(now);
+    renderAnalogue(now);
+
+    maybeAnnounce(now);
+  }
+
+  // ---- Speech announcements every :00 and :30 ----
+  let lastAnnouncedKey = null;
+
+  function inSilentPeriod(now) {
+    const [sh, sm] = silentStart.value.split(':').map(Number);
+    const [eh, em] = silentEnd.value.split(':').map(Number);
+    const start = sh * 60 + sm;
+    const end = eh * 60 + em;
+    const cur = now.getHours() * 60 + now.getMinutes();
+    if (start === end) return false;
+    if (start < end) {
+      return cur >= start && cur < end;
+    }
+    // wraps past midnight
+    return cur >= start || cur < end;
+  }
+
+  function speakTime(now, includeDate) {
+    if (!('speechSynthesis' in window)) return;
+    const wasListening = wakeActive;
+    if (wasListening) stopListening();
+    const t = formatTime(now);
+    const minuteWord = t.mm === '00' ? 'o\'clock' : (t.mm === '30' ? 'thirty' : t.mm);
+    let phrase = `It's ${t.h} ${minuteWord === "o'clock" ? '' : minuteWord} ${t.ampm === 'AM' ? 'A M' : 'P M'}`;
+    if (t.mm === '00') phrase = `It's ${t.h} o'clock ${t.ampm === 'AM' ? 'A M' : 'P M'}`;
+    if (includeDate) phrase += `. Today is ${formatDate(now)}`;
+
+    speechSynthesis.cancel();
+    ttsSpeak(phrase, 0.95, () => { if (wasListening && wakeToggle.checked) startListening(); });
+  }
+
+  function maybeAnnounce(now) {
+    if (!speechToggle.checked) return;
+    if (swRunning || timerRunning) return; // stopwatch/timer have their own speech while active
+    const m = now.getMinutes();
+    const s = now.getSeconds();
+    if ((m === 0 || m === 30) && s === 0) {
+      const key = `${now.getHours()}:${m}`;
+      if (key === lastAnnouncedKey) return;
+      lastAnnouncedKey = key;
+      if (inSilentPeriod(now)) return;
+      speakTime(now, dateToggle.checked);
+    }
+  }
+
+  // ---- Skye's voice: auto-picked once, always female where the browser offers one ----
+  let skyeVoice = null;
+  const FEMALE_VOICE_HINTS = [
+    'female', 'zira', 'hazel', 'susan', 'samantha', 'victoria', 'karen', 'moira',
+    'tessa', 'fiona', 'allison', 'ava', 'kate', 'serena', 'nicky', 'joanna',
+    'salli', 'kimberly', 'ivy', 'emma', 'amy', 'olivia', 'aria', 'jenny',
+    'natasha', 'libby', 'sonia', 'google us english', 'google uk english female'
+  ];
+
+  function pickSkyeVoice() {
+    const voices = speechSynthesis.getVoices();
+    const enVoices = voices.filter(v => v.lang.startsWith('en'));
+    const pool = enVoices.length ? enVoices : voices;
+    if (!pool.length) return null;
+    const femaleMatch = pool.find(v => FEMALE_VOICE_HINTS.some(h => v.name.toLowerCase().includes(h)));
+    return femaleMatch || pool[0];
+  }
+
+  function populateVoices() {
+    skyeVoice = pickSkyeVoice();
+    if (voiceNameEl) voiceNameEl.textContent = skyeVoice ? skyeVoice.name : 'default voice';
+  }
+  if ('speechSynthesis' in window) {
+    populateVoices();
+    speechSynthesis.onvoiceschanged = populateVoices;
+  }
+
+  // ---- Shared speech helper: keeps a reference alive (avoids a Chrome GC bug
+  // where unreferenced utterances silently fail to speak) ----
+  let activeUtterances = [];
+  function ttsSpeak(text, rate, onDone) {
+    const utter = new SpeechSynthesisUtterance(text);
+    if (skyeVoice) utter.voice = skyeVoice;
+    utter.rate = rate || 0.95;
+    activeUtterances.push(utter);
+    const cleanup = () => {
+      activeUtterances = activeUtterances.filter(u => u !== utter);
+      if (onDone) onDone();
+    };
+    utter.onend = cleanup;
+    utter.onerror = cleanup;
+    speechSynthesis.speak(utter);
+    return utter;
+  }
+
+  // Chrome has a long-standing bug where speechSynthesis silently stalls after
+  // ~15 seconds of continuous use. Nudging it with pause/resume keeps it alive.
+  let speechWatchdog = null;
+  function startSpeechWatchdog() {
+    if (speechWatchdog) return;
+    speechWatchdog = setInterval(() => {
+      if (speechSynthesis.speaking || speechSynthesis.pending) {
+        speechSynthesis.pause();
+        speechSynthesis.resume();
+      }
+    }, 8000);
+  }
+  function stopSpeechWatchdog() {
+    clearInterval(speechWatchdog);
+    speechWatchdog = null;
+  }
+
+  // ---- Stopwatch (speaks every elapsed second — this cannot be disabled) ----
+  let swRunning = false;
+  let swElapsedMs = 0;
+  let swStartedAt = 0;
+  let swRafId = null;
+  let swLastSpokenSecond = -1;
+  let swWasWakeListening = false;
+  let swLaps = [];
+
+  function swSpokenTime(ms) {
+    const totalSec = ms / 1000;
+    const mm = Math.floor(totalSec / 60);
+    const ssFull = totalSec - mm * 60;
+    const ss = Math.floor(ssFull);
+    const tenths = Math.round((ssFull - ss) * 10);
+    const secPart = tenths > 0 ? `${ss}.${tenths} seconds` : `${ss} second${ss === 1 ? '' : 's'}`;
+    return mm > 0 ? `${mm} minute${mm === 1 ? '' : 's'} ${secPart}` : secPart;
+  }
+
+  function swFormat(ms) {
+    const totalSec = Math.floor(ms / 1000);
+    const mm = Math.floor(totalSec / 60).toString().padStart(2, '0');
+    const ss = (totalSec % 60).toString().padStart(2, '0');
+    const tenths = Math.floor((ms % 1000) / 100);
+    return { mm, ss, tenths };
+  }
+
+  function swRenderDisplay() {
+    const elapsed = swRunning ? swElapsedMs + (performance.now() - swStartedAt) : swElapsedMs;
+    const { mm, ss, tenths } = swFormat(elapsed);
+    swDisplay.innerHTML = `${mm}:${ss}<span id="sw-tenths">.${tenths}</span>`;
+  }
+
+  function swSpeakSecond(wholeSecond) {
+    // Always speaks, regardless of the main "speak the time" toggle — intentional.
+    const minutesElapsed = Math.floor(wholeSecond / 60);
+    const secondsWithinMinute = wholeSecond % 60;
+    if (secondsWithinMinute === 0) {
+      ttsSpeak(`${minutesElapsed} minute${minutesElapsed === 1 ? '' : 's'}`, 1);
+    } else {
+      ttsSpeak(String(secondsWithinMinute), 1);
+    }
+  }
+
+  function swLoop() {
+    if (!swRunning) return;
+    const elapsed = swElapsedMs + (performance.now() - swStartedAt);
+    swRenderDisplay();
+    const wholeSecond = Math.floor(elapsed / 1000);
+    if (wholeSecond > swLastSpokenSecond && wholeSecond > 0) {
+      swLastSpokenSecond = wholeSecond;
+      swSpeakSecond(wholeSecond);
+    }
+    swRafId = requestAnimationFrame(swLoop);
+  }
+
+  function swStart_() {
+    if (swRunning) return;
+    swRunning = true;
+    swStartedAt = performance.now();
+    swStart.textContent = 'Stop';
+    swStart.classList.add('running');
+    // pause wake-word listening while the stopwatch is speaking every second,
+    // so it doesn't pick up its own voice; scheduled clock speech is paused too (see maybeAnnounce)
+    swWasWakeListening = wakeActive;
+    if (swWasWakeListening) stopListening();
+    startSpeechWatchdog();
+
+    // Critical: speak synchronously, directly inside this click handler.
+    // Every later per-second announcement fires from inside requestAnimationFrame,
+    // which most browsers (not just Chrome) don't treat as a genuine user gesture —
+    // so without a synchronous speak() here first, ALL of them get silently blocked.
+    // This one call unlocks speech for the rest of the session, universally.
+    speechSynthesis.cancel();
+    ttsSpeak('Stopwatch started', 1);
+
+    swLapBtn.disabled = false;
+    swLoop();
+  }
+
+  function swLap_() {
+    if (!swRunning) return;
+    const elapsed = swElapsedMs + (performance.now() - swStartedAt);
+    const lapNumber = swLaps.length + 1;
+    const prevTotal = swLaps.length ? swLaps[swLaps.length - 1] : 0;
+    const splitMs = elapsed - prevTotal;
+    swLaps.push(elapsed);
+
+    const li = document.createElement('li');
+    li.innerHTML = `<span>Lap ${lapNumber}</span><span>${swFormat(elapsed).mm}:${swFormat(elapsed).ss}.${swFormat(elapsed).tenths}</span>`;
+    swLapsList.prepend(li);
+
+    ttsSpeak(`Lap ${lapNumber}, ${swSpokenTime(splitMs)}`, 1);
+  }
+
+  function swHalt_() {
+    if (!swRunning) return;
+    swRunning = false;
+    swElapsedMs += performance.now() - swStartedAt;
+    swStart.textContent = 'Start';
+    swStart.classList.remove('running');
+    swLapBtn.disabled = true;
+    if (swRafId) cancelAnimationFrame(swRafId);
+    stopSpeechWatchdog();
+    swRenderDisplay();
+  }
+
+  function swStop_() {
+    if (!swRunning) return;
+    swHalt_();
+    speechSynthesis.cancel();
+    ttsSpeak(`Stopwatch stopped at ${swSpokenTime(swElapsedMs)}`, 1, () => {
+      if (swWasWakeListening && wakeToggle.checked) startListening();
+    });
+  }
+
+  function swReset_() {
+    const wasRunning = swRunning;
+    if (wasRunning) swHalt_();
+    swElapsedMs = 0;
+    swLastSpokenSecond = -1;
+    swLaps = [];
+    swLapsList.innerHTML = '';
+    swLapBtn.disabled = true;
+    swRenderDisplay();
+    speechSynthesis.cancel();
+    ttsSpeak('Stopwatch reset', 1, () => {
+      if (wasRunning && swWasWakeListening && wakeToggle.checked) startListening();
+    });
+  }
+
+  swStart.addEventListener('click', () => { swRunning ? swStop_() : swStart_(); });
+  swLapBtn.addEventListener('click', swLap_);
+  swReset.addEventListener('click', swReset_);
+  function swPanelOpen_() {
+    swRenderDisplay();
+    swPanel.classList.add('open');
+    speechSynthesis.cancel();
+    ttsSpeak('Stopwatch opened', 1);
+  }
+
+  function swPanelClose_() {
+    swPanel.classList.remove('open');
+    speechSynthesis.cancel();
+    ttsSpeak('Stopwatch closed', 1);
+  }
+
+  swBtn.addEventListener('click', swPanelOpen_);
+  swClose.addEventListener('click', swPanelClose_);
+  swPanel.addEventListener('click', (e) => { if (e.target === swPanel) swPanelClose_(); });
+
+  // ---- Calculator (reads out every entry, operation, and result — cannot be disabled) ----
+  let calcDisplay = '0';
+  let calcPrevValue = null;
+  let calcOperator = null;
+  let calcWaitingForOperand = false;
+
+  const OP_WORDS = { '+': 'plus', '−': 'minus', '×': 'times', '÷': 'divided by' };
+
+  function calcApplyOp(a, b, op) {
+    switch (op) {
+      case '+': return a + b;
+      case '−': return a - b;
+      case '×': return a * b;
+      case '÷': return b === 0 ? null : a / b;
+      default: return b;
+    }
+  }
+
+  function calcRoundClean(n) {
+    return Math.round(n * 1e9) / 1e9;
+  }
+
+  function calcRenderDisplay() {
+    calcDisplayEl.textContent = calcDisplay;
+  }
+
+  function calcSpeak(text) {
+    speechSynthesis.cancel();
+    ttsSpeak(text, 1);
+  }
+
+  function calcPressDigit(d) {
+    if (calcWaitingForOperand) {
+      calcDisplay = d;
+      calcWaitingForOperand = false;
+    } else {
+      calcDisplay = calcDisplay === '0' ? d : calcDisplay + d;
+    }
+    calcRenderDisplay();
+    calcSpeak(calcDisplay);
+  }
+
+  function calcPressDecimal() {
+    if (calcWaitingForOperand) {
+      calcDisplay = '0.';
+      calcWaitingForOperand = false;
+    } else if (!calcDisplay.includes('.')) {
+      calcDisplay += '.';
+    }
+    calcRenderDisplay();
+    calcSpeak('point');
+  }
+
+  function calcPressOperator(op) {
+    const inputValue = parseFloat(calcDisplay);
+    if (calcOperator !== null && !calcWaitingForOperand) {
+      const result = calcApplyOp(calcPrevValue, inputValue, calcOperator);
+      if (result === null) {
+        calcClear(true);
+        calcSpeak("Can't divide by zero");
+        return;
+      }
+      calcPrevValue = calcRoundClean(result);
+      calcDisplay = String(calcPrevValue);
+      calcRenderDisplay();
+    } else {
+      calcPrevValue = inputValue;
+    }
+    calcOperator = op;
+    calcWaitingForOperand = true;
+    calcSpeak(OP_WORDS[op]);
+  }
+
+  function calcPressEquals() {
+    if (calcOperator === null) {
+      calcSpeak(calcDisplay);
+      return;
+    }
+    const inputValue = parseFloat(calcDisplay);
+    const result = calcApplyOp(calcPrevValue, inputValue, calcOperator);
+    if (result === null) {
+      calcClear(true);
+      calcSpeak("Can't divide by zero");
+      return;
+    }
+    const clean = calcRoundClean(result);
+    calcDisplay = String(clean);
+    calcPrevValue = null;
+    calcOperator = null;
+    calcWaitingForOperand = true;
+    calcRenderDisplay();
+    calcSpeak(`Equals ${calcDisplay}`);
+  }
+
+  function calcClear(silent) {
+    calcDisplay = '0';
+    calcPrevValue = null;
+    calcOperator = null;
+    calcWaitingForOperand = false;
+    calcRenderDisplay();
+    if (!silent) calcSpeak('Cleared');
+  }
+
+  calcGrid.addEventListener('click', (e) => {
+    const btn = e.target.closest('.calc-key');
+    if (!btn) return;
+    if (btn.dataset.digit !== undefined) calcPressDigit(btn.dataset.digit);
+    else if (btn.dataset.op) calcPressOperator(btn.dataset.op);
+    else if (btn.dataset.action === 'decimal') calcPressDecimal();
+    else if (btn.dataset.action === 'equals') calcPressEquals();
+    else if (btn.dataset.action === 'clear') calcClear(false);
+  });
+
+  function calcPanelOpen_() {
+    calcRenderDisplay();
+    calcPanel.classList.add('open');
+    calcSpeak('Calculator opened');
+  }
+
+  function calcPanelClose_() {
+    calcPanel.classList.remove('open');
+    calcSpeak('Calculator closed');
+  }
+
+  calcBtn.addEventListener('click', calcPanelOpen_);
+  calcClose.addEventListener('click', calcPanelClose_);
+  calcPanel.addEventListener('click', (e) => { if (e.target === calcPanel) calcPanelClose_(); });
+
+  // ---- Timer (announces duration on start, beeps + speaks on finish — cannot be disabled) ----
+  let timerRunning = false;
+  let timerDurationMs = 0;
+  let timerStartedAt = 0;
+  let timerRafId = null;
+  let timerWasWakeListening = false;
+  let audioCtx = null;
+
+  function unlockAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playBeep() {
+    if (!audioCtx) return;
+    const now = audioCtx.currentTime;
+    for (let i = 0; i < 3; i++) {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 880;
+      const t0 = now + i * 0.35;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.35, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.28);
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + 0.3);
+    }
+  }
+
+  function timerFormat(ms) {
+    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+    const hh = Math.floor(totalSec / 3600).toString().padStart(2, '0');
+    const mm = Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0');
+    const ss = (totalSec % 60).toString().padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  }
+
+  function timerRenderDisplay(remainingMs) {
+    timerDisplayEl.textContent = timerFormat(remainingMs);
+  }
+
+  function timerSpokenDuration(ms) {
+    const totalSec = Math.round(ms / 1000);
+    const hh = Math.floor(totalSec / 3600);
+    const mm = Math.floor((totalSec % 3600) / 60);
+    const ss = totalSec % 60;
+    const parts = [];
+    if (hh > 0) parts.push(`${hh} hour${hh === 1 ? '' : 's'}`);
+    if (mm > 0) parts.push(`${mm} minute${mm === 1 ? '' : 's'}`);
+    if (ss > 0 || parts.length === 0) parts.push(`${ss} second${ss === 1 ? '' : 's'}`);
+    return parts.join(' ');
+  }
+
+  // ---- Digit-buffer keypad entry (HH:MM:SS), like a microwave timer:
+  // each new digit pushes in from the right ----
+  let timerEntryDigits = '000000';
+
+  function timerEntryDurationMs() {
+    const hh = parseInt(timerEntryDigits.slice(0, 2), 10);
+    const mm = parseInt(timerEntryDigits.slice(2, 4), 10);
+    const ss = parseInt(timerEntryDigits.slice(4, 6), 10);
+    return ((hh * 3600) + (mm * 60) + ss) * 1000;
+  }
+
+  function timerShowEntry() {
+    timerRenderDisplay(timerEntryDurationMs());
+  }
+
+  function timerEntryPressDigit(d) {
+    if (timerRunning) return;
+    timerEntryDigits = (timerEntryDigits + d).slice(-6);
+    timerShowEntry();
+    speechSynthesis.cancel();
+    ttsSpeak(timerSpokenDuration(timerEntryDurationMs()), 1);
+  }
+
+  function timerEntryBackspace() {
+    if (timerRunning) return;
+    timerEntryDigits = ('0' + timerEntryDigits).slice(0, 6);
+    timerShowEntry();
+    speechSynthesis.cancel();
+    ttsSpeak(timerSpokenDuration(timerEntryDurationMs()), 1);
+  }
+
+  function timerEntryClear() {
+    if (timerRunning) return;
+    timerEntryDigits = '000000';
+    timerShowEntry();
+    speechSynthesis.cancel();
+    ttsSpeak('Cleared', 1);
+  }
+
+  timerKeypad.addEventListener('click', (e) => {
+    const btn = e.target.closest('.timer-key');
+    if (!btn) return;
+    if (btn.dataset.digit !== undefined) timerEntryPressDigit(btn.dataset.digit);
+    else if (btn.dataset.action === 'backspace') timerEntryBackspace();
+    else if (btn.dataset.action === 'clear') timerEntryClear();
+  });
+
+  function timerLoop() {
+    if (!timerRunning) return;
+    const elapsed = performance.now() - timerStartedAt;
+    const remaining = timerDurationMs - elapsed;
+    if (remaining <= 0) {
+      timerRenderDisplay(0);
+      timerFinish_();
+      return;
+    }
+    timerRenderDisplay(remaining);
+    timerRafId = requestAnimationFrame(timerLoop);
+  }
+
+  function timerHalt_() {
+    timerRunning = false;
+    if (timerRafId) cancelAnimationFrame(timerRafId);
+    timerKeypad.classList.remove('disabled');
+    timerStartBtn.textContent = 'Start';
+    timerStartBtn.classList.remove('running');
+  }
+
+  function timerStart_() {
+    if (timerRunning) return;
+    const durationMs = timerEntryDurationMs();
+
+    // Unlock audio + speech synchronously inside this click, so the async
+    // beep and "Timer done" announcement later are allowed to play, universally.
+    unlockAudio();
+    speechSynthesis.cancel();
+
+    if (durationMs <= 0) {
+      ttsSpeak('Please enter a time first', 1);
+      return;
+    }
+
+    timerDurationMs = durationMs;
+    timerStartedAt = performance.now();
+    timerRunning = true;
+    timerKeypad.classList.add('disabled');
+    timerStartBtn.textContent = 'Cancel';
+    timerStartBtn.classList.add('running');
+
+    timerWasWakeListening = wakeActive;
+    if (timerWasWakeListening) stopListening();
+
+    ttsSpeak(`Timer set for ${timerSpokenDuration(durationMs)}`, 1);
+    timerLoop();
+  }
+
+  function timerCancel_() {
+    if (!timerRunning) return;
+    timerHalt_();
+    timerShowEntry();
+    speechSynthesis.cancel();
+    ttsSpeak('Timer cancelled', 1, () => {
+      if (timerWasWakeListening && wakeToggle.checked) startListening();
+    });
+  }
+
+  function timerReset_() {
+    const wasRunning = timerRunning;
+    if (wasRunning) timerHalt_();
+    timerEntryDigits = '000000';
+    timerShowEntry();
+    speechSynthesis.cancel();
+    ttsSpeak('Timer reset', 1, () => {
+      if (wasRunning && timerWasWakeListening && wakeToggle.checked) startListening();
+    });
+  }
+
+  function timerFinish_() {
+    timerHalt_();
+    timerShowEntry();
+    playBeep();
+    setTimeout(() => {
+      speechSynthesis.cancel();
+      ttsSpeak('Timer done', 1, () => {
+        if (timerWasWakeListening && wakeToggle.checked) startListening();
+      });
+    }, 950);
+  }
+
+  timerStartBtn.addEventListener('click', () => { timerRunning ? timerCancel_() : timerStart_(); });
+  timerResetBtn.addEventListener('click', timerReset_);
+
+  function timerPanelOpen_() {
+    if (timerRunning) {
+      timerRenderDisplay(timerDurationMs - (performance.now() - timerStartedAt));
+    } else {
+      timerShowEntry();
+    }
+    timerPanel.classList.add('open');
+    speechSynthesis.cancel();
+    ttsSpeak('Timer opened', 1);
+  }
+
+  function timerPanelClose_() {
+    timerPanel.classList.remove('open');
+    speechSynthesis.cancel();
+    ttsSpeak('Timer closed', 1);
+  }
+
+  timerBtn.addEventListener('click', timerPanelOpen_);
+  timerClose.addEventListener('click', timerPanelClose_);
+  timerPanel.addEventListener('click', (e) => { if (e.target === timerPanel) timerPanelClose_(); });
+
+  // ---- "Hey Skye" wake-word listening ----
+  const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let wakeActive = false;
+  let restartTimer = null;
+
+  function containsWakePhrase(transcript) {
+    const t = transcript.toLowerCase();
+    const hasName = t.includes('skye') || t.includes('sky') || t.includes('sky\'') || t.includes('sky.') || t.includes('skai');
+    const asksTime = t.includes('time') || t.includes('date') || t.includes('what');
+    return hasName && asksTime;
+  }
+
+  function containsDateWord(transcript) {
+    return transcript.toLowerCase().includes('date') || transcript.toLowerCase().includes('day is it');
+  }
+
+  function speakPhrase(phrase) {
+    const wasListening = wakeActive;
+    if (wasListening) stopListening();
+    speechSynthesis.cancel();
+    ttsSpeak(phrase, 0.95, () => { if (wasListening && wakeToggle.checked) startListening(); });
+  }
+
+  function respondToWake(transcript) {
+    const now = new Date();
+    if (containsDateWord(transcript) && !transcript.toLowerCase().includes('time')) {
+      speakPhrase(`Today is ${formatDate(now)}`);
+    } else {
+      speakTime(now, false);
+    }
+  }
+
+  function startListening() {
+    if (!SpeechRecognitionAPI) return;
+    if (recognition) { try { recognition.stop(); } catch (e) {} }
+    recognition = new SpeechRecognitionAPI();
+    // continuous mode is unreliable in Safari/WebKit; restarting per utterance
+    // via onend works reliably across Chrome, Edge, and Safari alike
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (containsWakePhrase(transcript)) {
+          respondToWake(transcript);
+          return;
+        }
+      }
+    };
+
+    recognition.onstart = () => {
+      wakeActive = true;
+      micIndicator.classList.add('listening');
+    };
+
+    recognition.onerror = (e) => {
+      wakeActive = false;
+      micIndicator.classList.remove('listening');
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        wakeToggle.checked = false;
+        wakeHint.textContent = 'Microphone access was denied, so voice activation is off. Check your browser\'s site settings to allow the microphone, then turn this back on.';
+      }
+      // 'no-speech', 'aborted', and 'network' are transient — onend below handles the restart
+    };
+
+    recognition.onend = () => {
+      wakeActive = false;
+      micIndicator.classList.remove('listening');
+      // browsers stop recognition after each utterance/pause; restart if still enabled
+      if (wakeToggle.checked) {
+        clearTimeout(restartTimer);
+        restartTimer = setTimeout(() => startListening(), 300);
+      }
+    };
+
+    try {
+      recognition.start();
+    } catch (e) { /* already started */ }
+  }
+
+  function stopListening() {
+    clearTimeout(restartTimer);
+    if (recognition) { try { recognition.stop(); } catch (e) {} }
+    recognition = null;
+    wakeActive = false;
+    micIndicator.classList.remove('listening');
+  }
+
+  if (!SpeechRecognitionAPI) {
+    wakeToggle.disabled = true;
+    wakeHint.textContent = 'Voice activation isn\'t supported in this browser or OS. It works in Chrome, Edge, and Safari on desktop and Android, and Safari on iOS/iPadOS — but not on iOS Chrome, since Apple doesn\'t allow other browsers to use this feature on iPhone/iPad.';
+  } else if (!window.isSecureContext) {
+    wakeToggle.disabled = true;
+    wakeHint.textContent = 'Voice activation needs the page loaded over a secure https:// link (like your Netlify or GitHub Pages address) rather than opened as a local file — the browser blocks microphone access otherwise.';
+  }
+
+  wakeToggle.addEventListener('change', () => {
+    if (wakeToggle.checked) startListening();
+    else stopListening();
+  });
+
+  // ---- Screen wake lock: stops the display sleeping/dimming on its own,
+  // so a running clock/timer/stopwatch stays visible. Needs iOS 16.4+ Safari. ----
+  let wakeLock = null;
+
+  async function requestWakeLock() {
+    if (!('wakeLock' in navigator)) {
+      wakelockToggle.disabled = true;
+      wakelockHint.textContent = 'Keeping the screen awake isn\'t supported in this browser. On iPhone, this needs iOS 16.4 or later.';
+      return;
+    }
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch (err) {
+      // Fails silently if the tab isn't visible yet or permission is refused;
+      // visibilitychange below retries once the page is actually on screen.
+    }
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    // The OS releases the lock whenever the tab/app is backgrounded or the
+    // screen turns off — this re-acquires it the moment it's back in view.
+    if (document.visibilityState === 'visible' && wakelockToggle.checked) {
+      requestWakeLock();
+    }
+  });
+
+  wakelockToggle.addEventListener('change', () => {
+    if (wakelockToggle.checked) requestWakeLock();
+    else releaseWakeLock();
+  });
+
+  requestWakeLock();
+  document.addEventListener('click', function firstTapWakeLock() {
+    if (wakelockToggle.checked && !wakeLock) requestWakeLock();
+    document.removeEventListener('click', firstTapWakeLock);
+  }, { once: true });
+
+  // ---- Panel controls ----
+  gearBtn.addEventListener('click', () => panel.classList.add('open'));
+  closeBtn.addEventListener('click', () => panel.classList.remove('open'));
+  panel.addEventListener('click', (e) => { if (e.target === panel) panel.classList.remove('open'); });
+  testBtn.addEventListener('click', () => speakTime(new Date(), dateToggle.checked));
+  faceStyleSelect.addEventListener('change', applyFaceStyle);
+
+  applyFaceStyle();
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>

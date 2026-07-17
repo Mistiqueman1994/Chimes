@@ -18,7 +18,6 @@ import sys
 
 import music_engine as me
 import prompt_parser as pp
-import lockout
 
 
 def _resource_path(*parts):
@@ -43,11 +42,6 @@ class MusicGenApp:
         root.resizable(False, False)
         self._set_window_icon()
 
-        locked, locked_until = lockout.is_locked()
-        if locked:
-            self._show_locked_screen(locked_until)
-            return
-
         self.melody = None
         self.buffer = None
 
@@ -64,25 +58,6 @@ class MusicGenApp:
                 self.root.iconphoto(True, tk.PhotoImage(file=_resource_path("assets", "icon.png")))
         except Exception:
             pass
-
-    def _show_locked_screen(self, locked_until):
-        for w in self.root.winfo_children():
-            w.destroy()
-        frame = ttk.Frame(self.root)
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
-        ttk.Label(frame, text="App Locked", font=("Segoe UI", 16, "bold"), foreground="#a33").pack(pady=(10, 8))
-        ttk.Label(
-            frame,
-            text=(
-                "This app was locked after 3 attempts to use the prompt box to "
-                "reference real copyrighted artists/songs.\n\n"
-                f"Time remaining: {lockout.remaining_time_str(locked_until)}\n\n"
-                "The app will unlock automatically once the 24-hour period has "
-                "passed. In the meantime, please close this window."
-            ),
-            wraplength=480, justify="left"
-        ).pack(pady=(0, 10))
-        ttk.Button(frame, text="Close", command=self.root.destroy).pack()
 
     def _show_lyrics_disclaimer(self):
         messagebox.showinfo(
@@ -237,26 +212,8 @@ class MusicGenApp:
         result = pp.parse_prompt(text)
 
         if result["blocked"]:
-            violations, newly_locked, locked_until = lockout.register_violation()
-
-            if newly_locked:
-                messagebox.showerror(
-                    "App locked",
-                    "That's 3 attempts to reference a real copyrighted artist/song "
-                    "in the prompt box. This app is now locked for 24 hours.\n\n"
-                    f"Time remaining: {lockout.remaining_time_str(locked_until)}"
-                )
-                self._show_locked_screen(locked_until)
-                return
-
-            remaining = lockout.MAX_VIOLATIONS - violations
-            messagebox.showwarning(
-                "Can't use that description",
-                result["block_reason"] +
-                f"\n\n({remaining} attempt(s) left before this app locks for 24 hours.)"
-            )
-            self.status.set(f"Prompt blocked ({violations}/{lockout.MAX_VIOLATIONS} strikes) - "
-                             "describe the sound, not an artist/band.")
+            messagebox.showwarning("Can't use that description", result["block_reason"])
+            self.status.set("Prompt blocked - describe the sound, not an artist/band.")
             return
 
         if result["mentions_vocals"]:

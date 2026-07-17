@@ -59,11 +59,6 @@ Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
 - `prompt_parser.py` - turns the free-text description into generator
   settings (genre/tempo/instrument hints, vocals mention) and screens for
   attempts to reference a real artist, band, or song.
-- `lockout.py` - locks the app for 24 hours after 3 blocked-prompt
-  attempts, persisted to a small JSON file in this app's own local data
-  folder (`%LOCALAPPDATA%\Original Music Generator` on Windows) - the
-  lockout is contained to this app on this PC, never system-wide and
-  never roaming to another machine.
 - `assets/icon.ico` / `assets/icon.png` - app icon (window/taskbar icon and
   the installer/exe icon).
 - `installer.nsi` - NSIS script that packages the PyInstaller build into a

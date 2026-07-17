@@ -7,10 +7,35 @@
   "private": true,
   "scripts": {
     "start": "electron .",
-    "package:win": "electron-packager . Snake --platform=win32 --arch=x64 --icon=build/icon.ico --out=dist --overwrite --app-copyright=\"\" --win32metadata.ProductName=\"Snake\" --win32metadata.FileDescription=\"Snake\""
+    "package:win": "electron-builder --win nsis --x64"
   },
   "devDependencies": {
     "electron": "^32.0.0",
-    "electron-packager": "^17.1.2"
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.chimes.snake",
+    "productName": "Snake",
+    "copyright": "",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "app/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "artifactName": "Snake-Setup.exe",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Snake"
+    }
   }
 }

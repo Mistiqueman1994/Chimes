@@ -33,16 +33,19 @@ prompts, and escalates if you keep triggering it:
 
 - **3 attempts** - the description box is turned off for 24 hours.
 - **2 more (5 total)** - in-app playback is also turned off for 24 hours.
-- **2 more (7 total)** - exporting WAV files is also turned off for 24 hours.
-- **2 more (9 total)** - generating music is also turned off for 24 hours.
+- **2 more (7+ total)** - exporting WAV files is also turned off for 24
+  hours, which is as far as it goes.
 
+Generating music itself is never turned off, no matter how many times
+the filter is triggered - there's always something the app can still do.
 Each new threshold re-locks everything up to that point for a fresh 24
 hours. If a restriction window passes without you triggering the filter
 again, it lifts completely. This never stops the app itself from
-opening - even at the highest level, the window still starts up and
-shows its controls, they're just turned off until the time passes. This
-is a deliberate design choice to make clear that this tool is meant for
-making original music, not for repeatedly trying to work around that.
+opening - even under the maximum restriction, the window still starts up
+and shows its controls, they're just turned off until the time passes.
+This is a deliberate design choice to make clear that this tool is meant
+for making original music, not for repeatedly trying to work around
+that.
 
 ## Lyrics and vocals are entirely on you
 

@@ -244,8 +244,7 @@ class MusicGenApp:
 
         # --- Actions ---
         btn_row = ttk.Frame(outer); btn_row.pack(fill="x", **pad)
-        self.generate_btn = ttk.Button(btn_row, text="Generate", command=self.on_generate)
-        self.generate_btn.pack(side="left", expand=True, fill="x", padx=4)
+        ttk.Button(btn_row, text="Generate", command=self.on_generate).pack(side="left", expand=True, fill="x", padx=4)
         self.play_btn = ttk.Button(btn_row, text="Play", command=self.on_play, state="disabled")
         self.play_btn.pack(side="left", expand=True, fill="x", padx=4)
         self.stop_btn = ttk.Button(btn_row, text="Stop", command=self.on_stop, state="disabled")
@@ -312,8 +311,6 @@ class MusicGenApp:
             self.play_btn.config(state="disabled")
         if "export" in self._disabled_features:
             self.export_wav_btn.config(state="disabled")
-        if "generate" in self._disabled_features:
-            self.generate_btn.config(state="disabled")
 
     def on_apply_prompt(self):
         text = self.prompt_var.get()
@@ -374,14 +371,6 @@ class MusicGenApp:
         self.status.set("Applied description to the settings below - tweak anything, then Generate.")
 
     def on_generate(self):
-        if not self._feature_allowed("generate"):
-            messagebox.showwarning(
-                "Feature restricted",
-                "Generating music is temporarily turned off due to repeated "
-                "attempts to reference real artists/songs. Try again later."
-            )
-            return
-
         self.status.set("Generating...")
         self.root.update_idletasks()
 

@@ -90,8 +90,9 @@ that and use the app to copy someone else's copyrighted work doesn't make
 you immune from the consequences of doing so. Triggering that filter
 repeatedly escalates: 3 attempts turns off the description box for 24
 hours, then every 2 more attempts turns off one more feature (playback,
-then exporting, then generating) for another 24 hours - never the app
-itself, which always still opens. It's instrumental-only and never writes
+then exporting) for another 24 hours, up to a ceiling - generating music
+itself is never turned off, and neither is the app, which always still
+opens. It's instrumental-only and never writes
 lyrics; any lyrics you add on top of the exported track are your own
 responsibility to make sure they're original. See `EULA.md` for the full
 text and `THIRD-PARTY-NOTICES.md` for bundled third-party licenses.

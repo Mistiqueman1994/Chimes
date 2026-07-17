@@ -9,14 +9,17 @@ file kept in this app's own local data folder (contained to this app on
 this one PC - not system-wide, never roaming to another machine).
 
 Escalation ladder (the violation count persists across restarts, but is
-never used to block the app from launching, only to disable features):
+never used to block the app from launching, and never reaches every
+feature - generating music is never disabled, so there's always
+something the app can still do):
 
     3 violations  -> the description box is disabled for 24 hours
     2 more (5)    -> in-app playback is also disabled for 24 hours
-    2 more (7)    -> exporting WAV files is also disabled for 24 hours
-    2 more (9+)   -> generating music is also disabled for 24 hours,
-                     which is as far as it goes - the app is still there,
-                     it just has nothing left to do until time passes.
+    2 more (7+)   -> exporting WAV files is also disabled for 24 hours,
+                     which is as far as it goes - you can still generate
+                     music the whole time, just not describe it in free
+                     text, preview it in-app, or export it until the
+                     restriction passes.
 
 Each new threshold re-locks everything up to that point for a fresh 24
 hours. If a lock window passes with no further violation, the
@@ -37,12 +40,11 @@ LOCK_DURATION_HOURS = 24
 
 APP_FOLDER_NAME = "Original Music Generator"
 
-FEATURES = ["prompt_box", "play", "export", "generate"]
+FEATURES = ["prompt_box", "play", "export"]
 FEATURE_LABELS = {
     "prompt_box": "the description box",
     "play": "in-app playback (Play)",
     "export": "exporting WAV files (Export WAV)",
-    "generate": "generating music (Generate)",
 }
 
 

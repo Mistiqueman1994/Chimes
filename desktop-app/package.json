@@ -1,0 +1,16 @@
+{
+  "name": "snake",
+  "productName": "Snake",
+  "version": "1.0.0",
+  "description": "A Nokia-phone-styled Snake game.",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "package:win": "electron-packager . Snake --platform=win32 --arch=x64 --icon=build/icon.ico --out=dist --overwrite --app-copyright=\"\" --win32metadata.ProductName=\"Snake\" --win32metadata.FileDescription=\"Snake\""
+  },
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-packager": "^17.1.2"
+  }
+}

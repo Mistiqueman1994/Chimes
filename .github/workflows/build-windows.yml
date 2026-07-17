@@ -1,0 +1,32 @@
+name: Build Windows Snake app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'desktop-app/**'
+      - '.github/workflows/build-windows.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: desktop-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run package:win
+      - name: Zip portable build
+        run: |
+          cd dist
+          zip -r ../Snake-win32-x64.zip "Snake-win32-x64"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Snake-windows
+          path: desktop-app/Snake-win32-x64.zip
+          retention-days: 30

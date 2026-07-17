@@ -1,13 +1,17 @@
 # Snake (desktop)
 
-A standalone Windows build of the Nokia-style Snake game, packaged with Electron.
-Opens in its own window titled "Snake" — no browser required.
+A standalone Windows build of the Nokia-style Snake game, packaged with Electron
+and an NSIS installer. Installs like a normal Windows app — Start Menu shortcut,
+optional desktop shortcut, and an uninstaller in "Add or remove programs" — and
+opens in its own window titled "Snake", no browser required.
 
-## Get the .exe
+## Get the installer
 
-Download the latest build from the repo's GitHub Actions run for
-**Build Windows Snake app** (Actions tab → latest successful run → Artifacts →
-`Snake-windows`). Unzip it and run `Snake.exe`.
+Permanent download link (rebuilt automatically on every push to `main`):
+
+https://github.com/Mistiqueman1994/Chimes/releases/download/snake-latest/Snake-Setup.exe
+
+Run it and follow the installer.
 
 ## Build it yourself
 
@@ -17,4 +21,4 @@ npm install
 npm run package:win
 ```
 
-Produces `dist/Snake-win32-x64/Snake.exe`.
+Produces `dist/Snake-Setup.exe`.

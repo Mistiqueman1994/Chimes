@@ -24,12 +24,10 @@ jobs:
           node-version: 20
       - run: npm install
       - run: npm run package:win
-      - name: Zip portable build
-        run: Compress-Archive -Path "dist/Snake-win32-x64" -DestinationPath "Snake-win32-x64.zip"
       - uses: actions/upload-artifact@v4
         with:
-          name: Snake-windows
-          path: desktop-app/Snake-win32-x64.zip
+          name: Snake-windows-installer
+          path: desktop-app/dist/Snake-Setup.exe
           retention-days: 30
       - name: Publish permanent download via GitHub Release
         env:
@@ -39,4 +37,4 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             gh release delete snake-latest --repo ${{ github.repository }} --yes --cleanup-tag
           }
-          gh release create snake-latest Snake-win32-x64.zip --repo ${{ github.repository }} --title "Snake (Windows)" --notes "Automated Windows build of the Nokia-style Snake game. Download, unzip, run Snake.exe."
+          gh release create snake-latest dist/Snake-Setup.exe --repo ${{ github.repository }} --title "Snake (Windows)" --notes "Windows installer for the Nokia-style Snake game. Download and run Snake-Setup.exe to install."

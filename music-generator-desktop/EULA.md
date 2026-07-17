@@ -10,9 +10,10 @@ this, not that you've signed a contract with a lawyer's blessing.
 
 This app generates original, algorithmic instrumental music - drums,
 bass, and guitars synthesized from scratch every time you click
-Generate. It does not use, embed, or reference samples, loops, or
-recordings of anyone else's music, and it does not write or generate
-vocals, lyrics, or spoken words of any kind.
+Generate - and lets you export it as a WAV or MP3 file. It does not use,
+embed, or reference samples, loops, or recordings of anyone else's
+music, and it does not write or generate vocals, lyrics, or spoken words
+of any kind.
 
 ## Trying to copy a real song doesn't work, and doesn't protect you
 
@@ -26,26 +27,16 @@ copyrighted work, the fact that a tool was "algorithmic" does not make
 you immune from the consequences of that. Those consequences are yours
 to deal with, not this app's.
 
-## Repeated attempts turn off more features, for longer
+## Repeated attempts turn off exporting
 
 The prompt-box filter above tracks attempts over time, not just single
-prompts, and escalates if you keep triggering it:
-
-- **3 attempts** - the description box is turned off for 24 hours.
-- **2 more (5 total)** - in-app playback is also turned off for 24 hours.
-- **2 more (7+ total)** - exporting WAV files is also turned off for 24
-  hours, which is as far as it goes.
-
-Generating music itself is never turned off, no matter how many times
-the filter is triggered - there's always something the app can still do.
-Each new threshold re-locks everything up to that point for a fresh 24
-hours. If a restriction window passes without you triggering the filter
-again, it lifts completely. This never stops the app itself from
-opening - even under the maximum restriction, the window still starts up
-and shows its controls, they're just turned off until the time passes.
-This is a deliberate design choice to make clear that this tool is meant
-for making original music, not for repeatedly trying to work around
-that.
+prompts. Every 3 blocked attempts, exporting audio (saving a WAV or MP3
+file) is turned off for 1 hour. Nothing else is affected - you can still
+describe, generate, and play music the whole time, you just can't save a
+file to disk until the hour passes. This never stops the app itself from
+opening or doing anything else; it's a deliberate, narrow consequence to
+make clear that this tool is meant for making original music, not for
+repeatedly trying to work around that.
 
 ## Lyrics and vocals are entirely on you
 

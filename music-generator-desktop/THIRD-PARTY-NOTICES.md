@@ -25,7 +25,22 @@ included in the installed application directory alongside the app.
   not modified. Its source code is freely available at the project link
   above under the same license.
 
+## lameenc (LAME)
+
+- Used for: MP3 encoding for the "Export..." feature.
+- License: GNU Lesser General Public License v2.1 (LGPL-2.1) (LAME
+  itself; the lameenc Python bindings are BSD-licensed).
+- Project: https://github.com/chrisstaite/lameenc (LAME source:
+  https://lame.sourceforge.io/)
+- Copyright (c) the LAME project contributors. Redistributed under
+  LGPL-2.1; see https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html
+  for the full text.
+- LAME is included as a compiled component and is not modified. Its
+  source code is freely available at the project link above under the
+  same license.
+
 ## Obtaining source
 
-Both projects are open source; their full source code is available at
-the project links above under their respective licenses at no charge.
+All of the above are open source; their full source code is available
+at the project links above under their respective licenses at no
+charge.

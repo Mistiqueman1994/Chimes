@@ -10,12 +10,14 @@ Public surface used by app.py:
     SAMPLE_RATE, NOTE_NAMES, SCALES, GENRE_PRESETS, INSTRUMENTS
     render_band(...)  -> numpy float32 array, mono, range roughly [-1, 1]
     save_wav(buffer, path)
+    save_mp3(buffer, path)
 """
 
 import wave
 import struct
 
 import numpy as np
+import lameenc
 
 SAMPLE_RATE = 44100
 
@@ -412,3 +414,19 @@ def save_wav(buffer, path):
         wf.setsampwidth(2)
         wf.setframerate(SAMPLE_RATE)
         wf.writeframes(struct.pack("<%dh" % len(ints), *ints))
+
+
+def save_mp3(buffer, path, bitrate_kbps=192):
+    """Write a mono float32 [-1, 1] buffer out as an MP3 via LAME."""
+    clipped = np.clip(buffer, -1.0, 1.0)
+    ints = (clipped * 32767.0).astype(np.int16)
+
+    encoder = lameenc.Encoder()
+    encoder.set_bit_rate(bitrate_kbps)
+    encoder.set_in_sample_rate(SAMPLE_RATE)
+    encoder.set_channels(1)
+    encoder.set_quality(2)
+    mp3_data = encoder.encode(ints.tobytes()) + encoder.flush()
+
+    with open(path, "wb") as f:
+        f.write(mp3_data)

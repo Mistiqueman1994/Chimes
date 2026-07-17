@@ -7,7 +7,7 @@ only. Every note, chord stab, and drum hit is synthesized from scratch.
 Use the output as a backing track and add your own vocals/lyrics on top.
 
 Run with:  python app.py
-Requires:  numpy, pygame  (pip install numpy pygame)
+Requires:  numpy, pygame, lameenc  (pip install numpy pygame lameenc)
 """
 
 import tkinter as tk
@@ -150,10 +150,9 @@ class MusicGenApp:
         disabled, locked_until = restrictions.active_restrictions()
         if disabled:
             self._apply_feature_restrictions(disabled)
-            feature_list = ", ".join(restrictions.FEATURE_LABELS[f] for f in disabled)
             self.status.set(
-                f"Restricted for {restrictions.remaining_time_str(locked_until)} "
-                f"due to repeated attempts to reference real artists/songs: {feature_list}."
+                f"Exporting turned off for {restrictions.remaining_time_str(locked_until)} "
+                "due to repeated attempts to reference real artists/songs."
             )
 
     def _on_eula_decline(self):
@@ -172,16 +171,12 @@ class MusicGenApp:
         prompt_box = ttk.LabelFrame(outer, text="Describe the track (optional)")
         prompt_box.pack(fill="x", **pad)
         self.prompt_var = tk.StringVar()
-        self.prompt_entry = ttk.Entry(prompt_box, textvariable=self.prompt_var, width=58)
-        self.prompt_entry.pack(side="left", padx=6, pady=8, fill="x", expand=True)
-        self.prompt_apply_btn = ttk.Button(prompt_box, text="Apply", command=self.on_apply_prompt)
-        self.prompt_apply_btn.pack(side="left", padx=6)
-        self.prompt_hint_label = ttk.Label(
-            outer, text="Describe style/instruments only - no artist, band, or song names "
-                        "(and no vocals - this app is instrumental-only).",
-            font=("Segoe UI", 8), foreground="#777", wraplength=520
-        )
-        self.prompt_hint_label.pack(pady=(0, 8))
+        entry = ttk.Entry(prompt_box, textvariable=self.prompt_var, width=58)
+        entry.pack(side="left", padx=6, pady=8, fill="x", expand=True)
+        ttk.Button(prompt_box, text="Apply", command=self.on_apply_prompt).pack(side="left", padx=6)
+        ttk.Label(outer, text="Describe style/instruments only - no artist, band, or song names "
+                              "(and no vocals - this app is instrumental-only).",
+                  font=("Segoe UI", 8), foreground="#777", wraplength=520).pack(pady=(0, 8))
 
         # --- Genre ---
         row = ttk.Frame(outer); row.pack(fill="x", **pad)
@@ -251,8 +246,8 @@ class MusicGenApp:
         self.stop_btn.pack(side="left", expand=True, fill="x", padx=4)
 
         btn_row2 = ttk.Frame(outer); btn_row2.pack(fill="x", **pad)
-        self.export_wav_btn = ttk.Button(btn_row2, text="Export WAV...", command=self.on_export_wav, state="disabled")
-        self.export_wav_btn.pack(side="left", expand=True, fill="x", padx=4)
+        self.export_btn = ttk.Button(btn_row2, text="Export...", command=self.on_export, state="disabled")
+        self.export_btn.pack(side="left", expand=True, fill="x", padx=4)
 
         if not HAS_AUDIO:
             ttk.Label(outer, text="(pygame not found - install it to enable in-app playback; export still works.)",
@@ -297,53 +292,35 @@ class MusicGenApp:
 
     def _apply_feature_restrictions(self, disabled_features):
         self._disabled_features = set(disabled_features)
-
-        if "prompt_box" in self._disabled_features:
-            self.prompt_var.set("")
-            self.prompt_entry.config(state="disabled")
-            self.prompt_apply_btn.config(state="disabled")
-            self.prompt_hint_label.config(
-                text="Description box turned off after repeated attempts to reference "
-                     "a real artist/band/song. Use the controls below instead."
-            )
-
-        if "play" in self._disabled_features:
-            self.play_btn.config(state="disabled")
         if "export" in self._disabled_features:
-            self.export_wav_btn.config(state="disabled")
+            self.export_btn.config(state="disabled")
 
     def on_apply_prompt(self):
         text = self.prompt_var.get()
         result = pp.parse_prompt(text)
 
         if result["blocked"]:
-            disabled, newly_escalated, locked_until, next_in = restrictions.register_violation()
+            disabled, newly_locked, locked_until, next_in = restrictions.register_violation()
 
             if disabled:
                 self._apply_feature_restrictions(disabled)
-                feature_list = ", ".join(restrictions.FEATURE_LABELS[f] for f in disabled)
                 time_left = restrictions.remaining_time_str(locked_until)
-                if newly_escalated:
-                    messagebox.showerror(
-                        "More features restricted",
-                        "That's another round of attempts to reference a real "
-                        f"copyrighted artist/song. Now turned off for {time_left}:\n\n"
-                        f"{feature_list}\n\n"
-                        "Anything not listed still works normally."
-                    )
-                else:
-                    messagebox.showerror(
-                        "Still restricted",
-                        f"Still turned off for {time_left}:\n\n{feature_list}"
-                    )
-                self.status.set(f"Restricted for {time_left}: {feature_list}.")
+                messagebox.showerror(
+                    "Exporting turned off",
+                    "That's 3 attempts to reference a real copyrighted artist/song "
+                    f"in the prompt box. Exporting audio is turned off for {time_left}.\n\n"
+                    "Everything else still works normally - you can still describe, "
+                    "generate, and play music, you just can't save a file until "
+                    "the restriction passes."
+                )
+                self.status.set(f"Exporting turned off for {time_left}.")
                 return
 
             messagebox.showwarning(
                 "Can't use that description",
                 result["block_reason"] +
-                (f"\n\n({next_in} attempt(s) left before more features get restricted.)"
-                 if next_in else "")
+                f"\n\n({next_in} attempt(s) left before exporting gets turned off "
+                "for an hour.)"
             )
             self.status.set("Prompt blocked - describe the sound, not an artist/band.")
             return
@@ -397,14 +374,12 @@ class MusicGenApp:
             self.status.set("Generation failed - see error.")
             return
 
-        self.play_btn.config(state="normal" if HAS_AUDIO and self._feature_allowed("play") else "disabled")
-        self.export_wav_btn.config(state="normal" if self._feature_allowed("export") else "disabled")
+        self.play_btn.config(state="normal" if HAS_AUDIO else "disabled")
+        self.export_btn.config(state="normal" if self._feature_allowed("export") else "disabled")
         self.status.set(f"Generated {self.genre_var.get()} - {', '.join(sorted(active))} - "
                          f"{self.bars_var.get()} bars @ {self.tempo_var.get()} BPM.")
 
     def on_play(self):
-        if not self._feature_allowed("play"):
-            return
         if self.buffer is None or not HAS_AUDIO:
             return
         fd, path = tempfile.mkstemp(suffix=".wav")
@@ -421,25 +396,36 @@ class MusicGenApp:
         self.stop_btn.config(state="disabled")
         self.status.set("Stopped.")
 
-    def on_export_wav(self):
+    def on_export(self):
         if not self._feature_allowed("export"):
             return
         if self.buffer is None:
             return
-        path = filedialog.asksaveasfilename(defaultextension=".wav", filetypes=[("WAV audio", "*.wav")])
-        if path:
+        path = filedialog.asksaveasfilename(
+            defaultextension=".wav",
+            filetypes=[("WAV audio", "*.wav"), ("MP3 audio", "*.mp3")],
+        )
+        if not path:
+            return
+
+        if path.lower().endswith(".mp3"):
+            me.save_mp3(self.buffer, path)
+            fmt = "MP3"
+        else:
             me.save_wav(self.buffer, path)
-            self.status.set(f"Saved WAV to {path}")
-            messagebox.showinfo(
-                "Saved",
-                f"Saved to {path}\n\n"
-                "This instrumental is original/algorithmic and yours to use. "
-                "Remember: this app is not intended to copy or recreate existing "
-                "copyrighted songs or artists - using it that way is at your own "
-                "risk. And if you add lyrics of your own on top, make sure "
-                "they're your own original writing - you're responsible for "
-                "that content, not this app."
-            )
+            fmt = "WAV"
+
+        self.status.set(f"Saved {fmt} to {path}")
+        messagebox.showinfo(
+            "Saved",
+            f"Saved to {path}\n\n"
+            "This instrumental is original/algorithmic and yours to use. "
+            "Remember: this app is not intended to copy or recreate existing "
+            "copyrighted songs or artists - using it that way is at your own "
+            "risk. And if you add lyrics of your own on top, make sure "
+            "they're your own original writing - you're responsible for "
+            "that content, not this app."
+        )
 
 
 if __name__ == "__main__":

@@ -24,9 +24,15 @@ _GENRE_KEYWORDS = {
     "Blues Rock": ["blues"],
     "Classic Rock": ["classic rock", "70s rock", "80s rock", "arena rock"],
     "Pop Rock": ["pop rock", "pop", "radio friendly"],
-    "Funk": ["funk", "groove"],
+    "Funk": ["funk"],
     "Synthwave": ["synthwave", "synth wave", "retrowave", "outrun", "80s synth"],
     "Ambient": ["ambient", "chill", "relax", "meditative", "atmospheric", "lo-fi", "lofi"],
+    "Jazz": ["jazz", "swing", "bebop", "big band"],
+    "Reggae": ["reggae", "ska", "dub", "one drop"],
+    "Disco": ["disco", "four on the floor", "boogie"],
+    "Latin": ["latin", "bossa nova", "bossa", "salsa", "samba"],
+    "Soul": ["soul", "motown", "r&b", "rnb"],
+    "Country": ["country", "twang", "bluegrass", "honky tonk"],
 }
 
 # --- tempo hints -------------------------------------------------------------------
@@ -43,8 +49,23 @@ _INSTRUMENT_KEYWORDS = {
     "Bass": ["bass"],
     "Rhythm Guitar": ["rhythm guitar", "power chord", "power chords", "chugging"],
     "Lead Guitar": ["lead guitar", "guitar solo", "solo", "riff", "shredding"],
+    "Piano": ["piano", "keys", "keyboard", "keyboards", "electric piano"],
+    "Brass": ["brass", "horn", "horns", "horn section", "trumpet", "trombone", "tuba"],
+    "Woodwinds": ["woodwind", "woodwinds", "flute", "clarinet", "sax", "saxophone", "oboe"],
 }
 _GENERIC_GUITAR_WORDS = ["guitar", "guitars"]
+
+# short aliases for the "no X" / "without X" exclusion scan below (in addition
+# to each instrument's own full name, which that scan already checks)
+_INSTRUMENT_ALIASES = {
+    "drum": "Drums", "drums": "Drums",
+    "bass": "Bass",
+    "guitar": ("Rhythm Guitar", "Lead Guitar"), "guitars": ("Rhythm Guitar", "Lead Guitar"),
+    "piano": "Piano", "keys": "Piano", "keyboard": "Piano",
+    "brass": "Brass", "horns": "Brass", "horn": "Brass", "trumpet": "Brass",
+    "woodwind": "Woodwinds", "woodwinds": "Woodwinds", "flute": "Woodwinds",
+    "clarinet": "Woodwinds", "sax": "Woodwinds", "saxophone": "Woodwinds",
+}
 
 # --- vocals ---------------------------------------------------------------------
 
@@ -158,15 +179,12 @@ def parse_prompt(text):
         for phrase in ("no " + instrument.lower(), "without " + instrument.lower()):
             if phrase in text_lower:
                 excluded.add(instrument)
-    for word in ["drum", "drums", "bass", "guitar", "guitars"]:
+    for word, targets in _INSTRUMENT_ALIASES.items():
         if f"no {word}" in text_lower or f"without {word}" in text_lower:
-            if word.startswith("drum"):
-                excluded.add("Drums")
-            elif word == "bass":
-                excluded.add("Bass")
-            elif word.startswith("guitar"):
-                excluded.add("Rhythm Guitar")
-                excluded.add("Lead Guitar")
+            if isinstance(targets, tuple):
+                excluded.update(targets)
+            else:
+                excluded.add(targets)
 
     mentioned = set()
     for instrument, keywords in _INSTRUMENT_KEYWORDS.items():

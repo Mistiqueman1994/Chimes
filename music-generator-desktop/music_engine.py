@@ -36,7 +36,7 @@ SCALES = {
     "Blues": [0, 3, 5, 6, 7, 10],
 }
 
-INSTRUMENTS = ["Drums", "Bass", "Rhythm Guitar", "Lead Guitar"]
+INSTRUMENTS = ["Drums", "Bass", "Rhythm Guitar", "Lead Guitar", "Piano", "Brass", "Woodwinds"]
 
 GENRE_PRESETS = {
     "Heavy Metal": {
@@ -61,7 +61,7 @@ GENRE_PRESETS = {
     },
     "Funk": {
         "scale": "Dorian", "tempo": 105, "distortion": 0.15,
-        "default_instruments": {"Drums", "Bass", "Rhythm Guitar"},
+        "default_instruments": {"Drums", "Bass", "Rhythm Guitar", "Brass"},
     },
     "Synthwave": {
         "scale": "Natural Minor", "tempo": 110, "distortion": 0.2,
@@ -70,6 +70,30 @@ GENRE_PRESETS = {
     "Ambient": {
         "scale": "Major Pentatonic", "tempo": 72, "distortion": 0.0,
         "default_instruments": {"Bass", "Lead Guitar"},
+    },
+    "Jazz": {
+        "scale": "Dorian", "tempo": 120, "distortion": 0.0,
+        "default_instruments": {"Drums", "Bass", "Piano", "Brass", "Woodwinds"},
+    },
+    "Reggae": {
+        "scale": "Minor Pentatonic", "tempo": 76, "distortion": 0.1,
+        "default_instruments": {"Drums", "Bass", "Rhythm Guitar", "Brass"},
+    },
+    "Disco": {
+        "scale": "Major", "tempo": 120, "distortion": 0.05,
+        "default_instruments": {"Drums", "Bass", "Rhythm Guitar", "Piano", "Brass"},
+    },
+    "Latin": {
+        "scale": "Mixolydian", "tempo": 108, "distortion": 0.0,
+        "default_instruments": {"Drums", "Bass", "Piano", "Woodwinds"},
+    },
+    "Soul": {
+        "scale": "Mixolydian", "tempo": 95, "distortion": 0.1,
+        "default_instruments": {"Drums", "Bass", "Piano", "Brass"},
+    },
+    "Country": {
+        "scale": "Major Pentatonic", "tempo": 130, "distortion": 0.15,
+        "default_instruments": {"Drums", "Bass", "Rhythm Guitar", "Lead Guitar"},
     },
 }
 
@@ -131,6 +155,20 @@ def _square(freq, duration, width=0.5):
     t = _time_axis(duration)
     phase = (t * freq) % 1.0
     return np.where(phase < width, 1.0, -1.0)
+
+
+def _triangle(freq, duration):
+    t = _time_axis(duration)
+    phase = (t * freq) % 1.0
+    return 4.0 * np.abs(phase - 0.5) - 1.0
+
+
+def _vibrato_tone(freq, duration, rate=5.0, depth=0.01):
+    """Sine tone with a slow pitch wobble - used for breathy woodwind lines."""
+    t = _time_axis(duration)
+    inst_freq = freq * (1.0 + depth * np.sin(2 * np.pi * rate * t))
+    phase = np.cumsum(inst_freq) / SAMPLE_RATE
+    return np.sin(2 * np.pi * phase)
 
 
 def _noise(duration, rng):
@@ -234,7 +272,8 @@ def _hihat(rng, open_hat=False):
 
 
 def _drum_pattern(genre):
-    """8 steps per bar (eighth notes): each step -> set of {'K','S','H','O'}."""
+    """8 steps per bar (eighth notes): each step -> string of {'K','S','H','O'}
+    hit codes, e.g. "KS" plays a kick and snare together on that step."""
     patterns = {
         "Heavy Metal": ["K", "H", "S", "H", "K", "H", "S", "H"],
         "Punk Rock": ["K", "H", "S", "H", "K", "K", "S", "H"],
@@ -244,6 +283,12 @@ def _drum_pattern(genre):
         "Funk": ["K", "H", "H", "S", "H", "K", "H", "S"],
         "Synthwave": ["K", "H", "S", "H", "K", "H", "S", "H"],
         "Ambient": ["K", "", "", "", "S", "", "", ""],
+        "Jazz": ["K", "H", "S", "H", "H", "H", "S", "H"],
+        "Reggae": ["", "H", "", "H", "KS", "H", "", "H"],
+        "Disco": ["K", "O", "KS", "O", "K", "O", "KS", "O"],
+        "Latin": ["K", "", "H", "K", "", "H", "S", "H"],
+        "Soul": ["K", "H", "S", "H", "K", "H", "S", "O"],
+        "Country": ["K", "H", "S", "H", "K", "H", "S", "H"],
     }
     return patterns.get(genre, patterns["Classic Rock"])
 
@@ -256,18 +301,17 @@ def _render_drums(bars, beat_dur, genre, rng):
     pattern = _drum_pattern(genre)
 
     for bar in range(bars):
-        for step, hit in enumerate(pattern):
-            if not hit:
-                continue
+        for step, hits in enumerate(pattern):
             start = int((bar * bar_dur + step * step_dur) * SAMPLE_RATE)
-            if hit == "K":
-                _mix_into(master, _kick(rng), start, gain=1.0)
-            elif hit == "S":
-                _mix_into(master, _snare(rng), start, gain=0.9)
-            elif hit == "H":
-                _mix_into(master, _hihat(rng, open_hat=False), start, gain=0.5)
-            elif hit == "O":
-                _mix_into(master, _hihat(rng, open_hat=True), start, gain=0.5)
+            for hit in hits:
+                if hit == "K":
+                    _mix_into(master, _kick(rng), start, gain=1.0)
+                elif hit == "S":
+                    _mix_into(master, _snare(rng), start, gain=0.9)
+                elif hit == "H":
+                    _mix_into(master, _hihat(rng, open_hat=False), start, gain=0.5)
+                elif hit == "O":
+                    _mix_into(master, _hihat(rng, open_hat=True), start, gain=0.5)
     return master
 
 
@@ -361,6 +405,120 @@ def _render_lead_guitar(key, scale_name, bars, beat_dur, distortion_amt, complex
     return master
 
 
+def _piano_tone(freq, duration):
+    """Struck-string-ish tone: a few harmonics over a fast-attack exponential decay."""
+    t = _time_axis(duration)
+    tone = (np.sin(2 * np.pi * freq * t)
+            + 0.5 * np.sin(2 * np.pi * 2 * freq * t)
+            + 0.25 * np.sin(2 * np.pi * 3 * freq * t)) / 1.75
+    env = _exp_decay_env(len(t), rate=3.5)
+    attack_n = min(len(env), max(1, int(0.005 * SAMPLE_RATE)))
+    env[:attack_n] *= np.linspace(0, 1, attack_n, endpoint=False)
+    return tone * env
+
+
+def _render_piano(key, scale_name, bars, beat_dur, complexity, rng):
+    scale_notes = _scale_midi_notes(key, scale_name, octaves=3, base_octave_offset=12)
+    prog = _chord_progression(scale_notes, bars)
+    bar_dur = beat_dur * 4
+    total = int(bars * bar_dur * SAMPLE_RATE) + SAMPLE_RATE
+    master = np.zeros(total, dtype=np.float64)
+
+    arpeggiate = complexity > 0.45
+    steps_per_bar = 8
+    step_dur = bar_dur / steps_per_bar
+
+    for bar, degree in enumerate(prog):
+        triad = _diatonic_triad(scale_notes, degree)
+        if arpeggiate:
+            arp = triad + [triad[0] + 12]
+            for step in range(steps_per_bar):
+                note = arp[step % len(arp)]
+                freq = _midi_to_freq(note)
+                voice = _piano_tone(freq, step_dur * 0.95)
+                start = int((bar * bar_dur + step * step_dur) * SAMPLE_RATE)
+                _mix_into(master, voice, start, gain=0.5)
+        else:
+            for beat in (0, 2):
+                dur = beat_dur * 1.9
+                chord_audio = np.zeros(int(dur * SAMPLE_RATE))
+                for note in triad:
+                    voice = _piano_tone(_midi_to_freq(note), dur)
+                    chord_audio = chord_audio[:len(voice)] + voice if len(chord_audio) else voice
+                start = int((bar * bar_dur + beat * beat_dur) * SAMPLE_RATE)
+                _mix_into(master, chord_audio, start, gain=0.35)
+    return master
+
+
+def _brass_tone(freq, duration, distortion_amt):
+    voice = _saw(freq, duration) * 0.6 + _square(freq, duration, width=0.4) * 0.4
+    env = _adsr(len(voice), attack=0.015, decay=0.05, sustain=0.7, release=0.08)
+    return _soft_clip(voice * env, min(0.35, distortion_amt))
+
+
+def _brass_stab_beats(genre):
+    """Beat offsets (within a 4-beat bar) where the brass section hits."""
+    patterns = {
+        "Funk": [0, 1.5, 2, 3.5],
+        "Disco": [0, 2, 2.5, 3],
+        "Reggae": [0.5, 1.5, 2.5, 3.5],
+        "Soul": [0, 1, 2.5, 3],
+        "Jazz": [0, 1, 2, 3],
+    }
+    return patterns.get(genre, [0, 2])
+
+
+def _render_brass(key, scale_name, genre, bars, beat_dur, distortion_amt, rng):
+    scale_notes = _scale_midi_notes(key, scale_name, octaves=2, base_octave_offset=12)
+    prog = _chord_progression(scale_notes, bars)
+    bar_dur = beat_dur * 4
+    total = int(bars * bar_dur * SAMPLE_RATE) + SAMPLE_RATE
+    master = np.zeros(total, dtype=np.float64)
+    stabs = _brass_stab_beats(genre)
+
+    for bar, degree in enumerate(prog):
+        triad = _diatonic_triad(scale_notes, degree)
+        for stab_beat in stabs:
+            dur = beat_dur * 0.4
+            chord_audio = np.zeros(int(dur * SAMPLE_RATE))
+            for note in triad:
+                voice = _brass_tone(_midi_to_freq(note), dur, distortion_amt)
+                chord_audio = chord_audio[:len(voice)] + voice if len(chord_audio) else voice
+            start = int((bar * bar_dur + stab_beat * beat_dur) * SAMPLE_RATE)
+            _mix_into(master, chord_audio, start, gain=0.45)
+    return master
+
+
+def _woodwind_tone(freq, duration):
+    tone = _vibrato_tone(freq, duration, rate=5.0, depth=0.012) * 0.85 + _sine(freq * 2, duration) * 0.15
+    env = _adsr(len(tone), attack=0.04, decay=0.05, sustain=0.75, release=0.12)
+    return tone * env
+
+
+def _render_woodwinds(key, scale_name, bars, beat_dur, complexity, rng):
+    scale_notes = _scale_midi_notes(key, scale_name, octaves=3, base_octave_offset=12)
+    bar_dur = beat_dur * 4
+    total = int(bars * bar_dur * SAMPLE_RATE) + SAMPLE_RATE
+    master = np.zeros(total, dtype=np.float64)
+
+    # sparser, longer notes than the lead guitar line - legato character
+    subdivisions = [2, 4, 4, 8, 8][min(4, int(complexity * 5))]
+    step_dur = (beat_dur * 4) / subdivisions
+
+    idx = len(scale_notes) // 2 + 2
+    for bar in range(bars):
+        for step in range(subdivisions):
+            if rng.random() > (0.5 + complexity * 0.4):
+                continue  # leave rests so the line breathes
+            move = rng.choice([-2, -1, 0, 1, 2])
+            idx = max(0, min(len(scale_notes) - 1, idx + move))
+            freq = _midi_to_freq(scale_notes[idx])
+            voice = _woodwind_tone(freq, step_dur * 0.98)
+            start = int((bar * bar_dur + step * step_dur) * SAMPLE_RATE)
+            _mix_into(master, voice, start, gain=0.4)
+    return master
+
+
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -391,6 +549,12 @@ def render_band(key, scale_name, genre, bars, tempo_bpm, active_instruments,
         tracks.append(_render_rhythm_guitar(key, scale_name, genre, bars, beat_dur, distortion_amt, rng))
     if "Lead Guitar" in active_instruments:
         tracks.append(_render_lead_guitar(key, scale_name, bars, beat_dur, distortion_amt, complexity, rng))
+    if "Piano" in active_instruments:
+        tracks.append(_render_piano(key, scale_name, bars, beat_dur, complexity, rng))
+    if "Brass" in active_instruments:
+        tracks.append(_render_brass(key, scale_name, genre, bars, beat_dur, distortion_amt, rng))
+    if "Woodwinds" in active_instruments:
+        tracks.append(_render_woodwinds(key, scale_name, bars, beat_dur, complexity, rng))
 
     for track in tracks:
         n = min(len(master), len(track))

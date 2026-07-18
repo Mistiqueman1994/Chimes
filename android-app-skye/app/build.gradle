@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.chimes.skye'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.chimes.skye"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../keystore/skye-release.keystore")
+            storePassword System.getenv("SKYE_KEYSTORE_PASSWORD") ?: "skye-chimes-2026"
+            keyAlias "skye"
+            keyPassword System.getenv("SKYE_KEY_PASSWORD") ?: "skye-chimes-2026"
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}

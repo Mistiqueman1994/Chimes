@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Launcher" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:background">@color/backgroundColor</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.Toolbar" parent="Theme.AppCompat.Light" />
+</resources>

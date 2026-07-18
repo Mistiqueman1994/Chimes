@@ -1571,6 +1571,15 @@
   tick();
   setInterval(tick, 1000);
 })();
+
+// Register service worker — required for PWA installability, and lets the app
+// keep working offline once it's loaded. Only works over https:// (or localhost),
+// not from a file:// path, which is also why Wake Lock needs real hosting.
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

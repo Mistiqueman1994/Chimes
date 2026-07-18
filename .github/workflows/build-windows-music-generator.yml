@@ -27,8 +27,12 @@ jobs:
           pyinstaller --noconfirm --onefile --windowed --name "OriginalMusicGenerator" `
             --icon assets/icon.ico --add-data "assets/icon.ico;assets" `
             --add-data "EULA.md;." app.py
-      - name: Add NSIS to PATH
-        run: echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
+      - name: Ensure NSIS is installed
+        run: |
+          if (-not (Get-Command makensis -ErrorAction SilentlyContinue)) {
+            choco install nsis -y --no-progress
+          }
+          echo "C:\Program Files (x86)\NSIS" >> $env:GITHUB_PATH
       - run: New-Item -ItemType Directory -Force -Path dist_installer
       - run: makensis installer.nsi
       - uses: actions/upload-artifact@v4

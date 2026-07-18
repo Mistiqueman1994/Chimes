@@ -1,0 +1,40 @@
+name: Build Windows Skye app
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'desktop-app-skye/**'
+      - '.github/workflows/build-windows-skye.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop-app-skye
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm run package:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Skye-windows-installer
+          path: desktop-app-skye/dist/Skye-Setup.exe
+          retention-days: 30
+      - name: Publish permanent download via GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view skye-latest --repo ${{ github.repository }} 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release delete skye-latest --repo ${{ github.repository }} --yes --cleanup-tag
+          }
+          gh release create skye-latest dist/Skye-Setup.exe --repo ${{ github.repository }} --title "Skye (Windows)" --notes "Windows installer for the Skye talking sky clock. Download and run Skye-Setup.exe to install."

@@ -1,0 +1,25 @@
+{
+  "name": "Skye",
+  "short_name": "Skye",
+  "description": "A talking sky clock with a stopwatch, timer, calculator, and \"Hey Skye\" voice activation.",
+  "start_url": "./skye.html",
+  "scope": "./skye.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#060B1F",
+  "theme_color": "#060B1F",
+  "icons": [
+    {
+      "src": "icon-skye-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-skye-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

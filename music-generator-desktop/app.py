@@ -230,10 +230,12 @@ class MusicGenApp:
         inst_box = ttk.LabelFrame(outer, text="Instruments")
         inst_box.pack(fill="x", **pad)
         self.inst_vars = {}
-        for name in me.INSTRUMENTS:
+        cols = 4
+        for i, name in enumerate(me.INSTRUMENTS):
             v = tk.BooleanVar(value=True)
             self.inst_vars[name] = v
-            ttk.Checkbutton(inst_box, text=name, variable=v).pack(side="left", padx=8, pady=6)
+            cb = ttk.Checkbutton(inst_box, text=name, variable=v)
+            cb.grid(row=i // cols, column=i % cols, padx=8, pady=6, sticky="w")
 
         ttk.Separator(outer).pack(fill="x", pady=10)
 

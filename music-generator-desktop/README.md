@@ -1,10 +1,10 @@
 # Original Music Generator (desktop)
 
 A Tkinter desktop app that generates original, algorithmic instrumental
-backing tracks - full band (drums, bass, rhythm guitar, lead guitar).
-Every sound is synthesized from scratch with basic oscillators, envelopes,
-and a distortion curve; there are no samples, loops, or recordings of any
-kind, and the app never generates vocals or lyrics.
+backing tracks - drums, bass, rhythm/lead guitar, piano, brass, and
+woodwinds. Every sound is synthesized from scratch with basic oscillators,
+envelopes, and a distortion curve; there are no samples, loops, or
+recordings of any kind, and the app never generates vocals or lyrics.
 
 ## Get the Windows installer
 
@@ -44,11 +44,13 @@ Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
 ## What it does
 
 - Pick a genre (Heavy Metal, Punk Rock, Blues Rock, Classic Rock, Pop Rock,
-  Funk, Synthwave, Ambient) or describe the track in the text box - genre,
-  tempo, and instrument selection are inferred from the description.
+  Funk, Synthwave, Ambient, Jazz, Reggae, Disco, Latin, Soul, Country) or
+  describe the track in the text box - genre, tempo, and instrument
+  selection are inferred from the description.
 - Choose key/scale, tempo, bar count, lead complexity, guitar distortion,
   and an optional seed for reproducible output.
-- Toggle instruments (Drums / Bass / Rhythm Guitar / Lead Guitar).
+- Toggle instruments: Drums, Bass, Rhythm Guitar, Lead Guitar, Piano,
+  Brass, and Woodwinds.
 - Generate, play back in-app, and export a `.wav` or `.mp3` file to use
   as a backing track for your own vocals.
 
@@ -56,8 +58,8 @@ Produces `dist_installer/MusicGenerator-Setup.exe`. (On Windows, PyInstaller's
 
 - `app.py` - Tkinter UI and app flow.
 - `music_engine.py` - the synthesis engine: oscillators, envelopes,
-  distortion, drum/bass/guitar voices, chord progressions, and WAV/MP3
-  export.
+  distortion, drum/bass/guitar/piano/brass/woodwind voices, chord
+  progressions, and WAV/MP3 export.
 - `prompt_parser.py` - turns the free-text description into generator
   settings (genre/tempo/instrument hints, vocals mention) and screens for
   attempts to reference a real artist, band, or song.
